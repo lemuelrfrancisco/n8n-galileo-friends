@@ -1,0 +1,4330 @@
+{
+  "updatedAt": "2026-02-04T02:43:38.757Z",
+  "createdAt": "2026-01-28T15:09:51.834Z",
+  "id": "Rqp5DLzr1EltZIhD",
+  "name": "Galileo&Friends - Marketing Generator",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -592,
+        192
+      ],
+      "id": "telegram-trigger",
+      "name": "Telegram Trigger",
+      "webhookId": "f96489a7-db8b-4d23-8bba-79be8369c86d",
+      "credentials": {
+        "telegramApi": {
+          "id": "VVVfsF0zp9hQn8N8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 12
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -144,
+        576
+      ],
+      "id": "schedule-trigger",
+      "name": "Daily Schedule"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "user-check",
+              "leftValue": 8430120206,
+              "rightValue": "={{ $json.message.chat.id }}",
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -368,
+        192
+      ],
+      "id": "validate-user",
+      "name": "Validate User"
+    },
+    {
+      "parameters": {
+        "jsCode": "const text = $('Telegram Trigger').first().json.message.text?.toLowerCase() || '';\nconst parts = text.split(' ');\nconst command = parts[0];\nconst param = parts[1] || '';\nconst chatId = $('Telegram Trigger').first().json.message?.chat.id || 0;\n\nreturn {\n  command,\n  param,\n  chatId,\n  source: 'telegram'\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        80,
+        384
+      ],
+      "id": "parse-command",
+      "name": "Parse Command"
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\n  command: 'market',\n  param: '',\n  chatId: 8430120206,\n  source: 'schedule'\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        80,
+        576
+      ],
+      "id": "schedule-context",
+      "name": "Set Schedule Context"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.command }}",
+                    "rightValue": "market",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "market-cmd"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Market"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.command }}",
+                    "rightValue": "list",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "list-cmd"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "List"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.command }}",
+                    "rightValue": "generate",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "generate-cmd"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Generate"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.command }}",
+                    "rightValue": "get",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "get-cmd"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Get"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.command }}",
+                    "rightValue": "help",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "help-cmd"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Help"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "allMatchingOutputs": false
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        304,
+        320
+      ],
+      "id": "command-switch",
+      "name": "Command Router"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "has-param",
+              "leftValue": "={{ $json.hasParam }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        512,
+        -96
+      ],
+      "id": "market-has-id",
+      "name": "Market Has ID?"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "productId": "={{ $('Store Market Context').item.json.param }}"
+      },
+      "type": "n8n-nodes-base.wooCommerce",
+      "typeVersion": 1,
+      "position": [
+        976,
+        -48
+      ],
+      "id": "market-get-specific",
+      "name": "Market Get Specific",
+      "credentials": {
+        "wooCommerceApi": {
+          "id": "uGpC30yt9WNfKtA1",
+          "name": "WooCommerce account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "returnAll": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.wooCommerce",
+      "typeVersion": 1,
+      "position": [
+        752,
+        144
+      ],
+      "id": "market-get-recent",
+      "name": "Market Get Recent",
+      "credentials": {
+        "wooCommerceApi": {
+          "id": "uGpC30yt9WNfKtA1",
+          "name": "WooCommerce account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const product = $json;\nconst chatId = product._chatId || 8430120206;\n\nif (!product || !product.id) {\n  return {\n    error: true,\n    errorMessage: 'Failed to fetch product data',\n    chatId\n  };\n}\n\nreturn {\n  error: false,\n  productId: product.id,\n  productName: product.name,\n  productDescription: product.description?.replace(/<[^>]*>/g, '') || '',\n  productShortDescription: product.short_description?.replace(/<[^>]*>/g, '') || '',\n  productPrice: product.price,\n  productRegularPrice: product.regular_price,\n  productSalePrice: product.sale_price,\n  productCategories: product.categories?.map(c => c.name).join(', ') || '',\n  productTags: product.tags?.map(t => t.name).join(', ') || '',\n  productImage: product.images?.[0]?.src || '',\n  productUrl: product.permalink,\n  chatId\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        0
+      ],
+      "id": "prepare-product-data",
+      "name": "Prepare Product Data"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "no-error",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1424,
+        0
+      ],
+      "id": "check-product-valid",
+      "name": "Product Valid?"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chatId }}",
+        "text": "Failed to fetch product. Please check the product ID and try again.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1648,
+        144
+      ],
+      "id": "notify-product-error",
+      "name": "Notify Product Error",
+      "webhookId": "c56b4ca2-691a-40e1-bf32-895f034d5eab",
+      "credentials": {
+        "telegramApi": {
+          "id": "VVVfsF0zp9hQn8N8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1k6dLR39LQqj7igNv5LhF34jm26zfXBx3XpwC_Ld0yVw",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "ProcessedProducts",
+          "mode": "name"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "ProductID",
+              "lookupValue": "={{ $json.productId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1648,
+        -48
+      ],
+      "id": "check-processed",
+      "name": "Check If Processed",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "QrdVcRSV8DgAcNck",
+          "name": "Google Sheets account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "not-processed",
+              "leftValue": "={{ $json.ProductID }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1872,
+        -48
+      ],
+      "id": "is-not-processed",
+      "name": "Not Processed Yet?"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.requestBody) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2320,
+        -144
+      ],
+      "id": "generate-marketing-content",
+      "name": "Generate Marketing Content",
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "fxd1AYCxA3ZIgQAD",
+          "name": "Gemini API Key"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $json;\nconst productData = $('Prepare Gemini Request').item.json.productData;\n\n// Extract text from Gemini API response\nlet text = '';\ntry {\n  text = response.candidates?.[0]?.content?.parts?.[0]?.text || '';\n} catch (e) {\n  text = '';\n}\n\n// Check for AI generation error\nif (!text || $json.error) {\n  return {\n    error: true,\n    errorMessage: 'AI content generation failed',\n    productId: productData.productId,\n    productName: productData.productName,\n    chatId: productData.chatId\n  };\n}\n\nlet parsed;\ntry {\n  const jsonMatch = text.match(/\\{[\\s\\S]*\\}/);\n  if (jsonMatch) {\n    parsed = JSON.parse(jsonMatch[0]);\n  } else {\n    parsed = {\n      headline: 'Marketing Content Generated',\n      description: text,\n      socialPost: text.substring(0, 280),\n      videoScript: 'Please see the full description for video content ideas.',\n      imagePrompt: 'Product marketing image'\n    };\n  }\n} catch (e) {\n  parsed = {\n    headline: 'Marketing Content Generated',\n    description: text,\n    socialPost: text.substring(0, 280),\n    videoScript: 'Please see the full description for video content ideas.',\n    imagePrompt: 'Product marketing image'\n  };\n}\n\n// Ensure videoScript and imagePrompt are strings\nlet videoScript = parsed.videoScript;\nif (typeof videoScript === 'object') {\n  videoScript = JSON.stringify(videoScript, null, 2);\n}\n\nlet imagePrompt = parsed.imagePrompt;\nif (typeof imagePrompt === 'object') {\n  imagePrompt = JSON.stringify(imagePrompt, null, 2);\n}\n\nreturn {\n  error: false,\n  headline: parsed.headline || '',\n  description: parsed.description || '',\n  socialPost: parsed.socialPost || '',\n  videoScript: videoScript || '',\n  imagePrompt: imagePrompt || '',\n  productId: productData.productId,\n  productName: productData.productName,\n  productUrl: productData.productUrl,\n  productImage: productData.productImage,\n  chatId: productData.chatId\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2544,
+        -144
+      ],
+      "id": "parse-marketing-content",
+      "name": "Parse Marketing Response"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "no-ai-error",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2768,
+        -144
+      ],
+      "id": "check-ai-success",
+      "name": "AI Generation OK?"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chatId }}",
+        "text": "AI content generation failed for product {{ $json.productName }} (ID: {{ $json.productId }}). Please try again later.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2992,
+        -48
+      ],
+      "id": "notify-ai-error",
+      "name": "Notify AI Error",
+      "webhookId": "2bc8f648-17be-4f16-8fe0-d9e4fe407adb",
+      "credentials": {
+        "telegramApi": {
+          "id": "VVVfsF0zp9hQn8N8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1k6dLR39LQqj7igNv5LhF34jm26zfXBx3XpwC_Ld0yVw",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "ProcessedProducts",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ProductID": "={{ $('Parse Marketing Response').item.json.productId }}",
+            "ProductName": "={{ $('Parse Marketing Response').item.json.productName }}",
+            "ProcessedAt": "={{ $now.toISO() }}",
+            "Headline": "={{ $('Parse Marketing Response').item.json.headline }}",
+            "Description": "={{ $('Parse Marketing Response').item.json.description }}",
+            "SocialPost": "={{ $('Parse Marketing Response').item.json.socialPost }}",
+            "VideoScript": "={{ JSON.stringify($('Parse Marketing Response').item.json.videoScript) }}",
+            "ImagePrompt": "={{ JSON.stringify($('Parse Marketing Response').item.json.imagePrompt) }}",
+            "ProductURL": "={{ $('Parse Marketing Response').item.json.productUrl }}",
+            "DateTimeCreated": "={{ $now.format('yyyy-MM-dd HH:mm:ss') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "ProductID",
+              "displayName": "ProductID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ProductName",
+              "displayName": "ProductName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ProcessedAt",
+              "displayName": "ProcessedAt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Headline",
+              "displayName": "Headline",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Description",
+              "displayName": "Description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "SocialPost",
+              "displayName": "SocialPost",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "VideoScript",
+              "displayName": "VideoScript",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ImagePrompt",
+              "displayName": "ImagePrompt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ProductURL",
+              "displayName": "ProductURL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "DateTimeCreated",
+              "displayName": "DateTimeCreated",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        2992,
+        -240
+      ],
+      "id": "save-to-sheets",
+      "name": "Save to Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "QrdVcRSV8DgAcNck",
+          "name": "Google Sheets account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Prepare Product Data').item.json.chatId }}",
+        "text": "=\u26a0\ufe0f Product ID {{ $('Prepare Product Data').item.json.productId }} ({{ $('Prepare Product Data').item.json.productName }}) has already been processed. Skipping to avoid duplicate content.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2096,
+        48
+      ],
+      "id": "send-already-processed",
+      "name": "Notify Already Processed",
+      "webhookId": "818b38eb-2d18-49c7-9a79-4af2203c96be",
+      "credentials": {
+        "telegramApi": {
+          "id": "VVVfsF0zp9hQn8N8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const param = $json.param;\nconst isGetAll = param === 'all';\nconst items = param !== 'all' && Number(param) ? param : '';\n\nreturn { isGetAll, items, chatId: $json.chatId };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        528,
+        384
+      ],
+      "id": "list-extract-params",
+      "name": "List Extract Params"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "has-items",
+              "leftValue": "={{ $json.items }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "is-get-all",
+              "leftValue": "={{ $json.isGetAll }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        752,
+        384
+      ],
+      "id": "list-has-valid-param",
+      "name": "List Valid Param?"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "returnAll": "={{ $json.isGetAll }}",
+        "limit": "={{ $json.items || 5 }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.wooCommerce",
+      "typeVersion": 1,
+      "position": [
+        976,
+        336
+      ],
+      "id": "list-get-products",
+      "name": "List Get Products",
+      "credentials": {
+        "wooCommerceApi": {
+          "id": "uGpC30yt9WNfKtA1",
+          "name": "WooCommerce account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": 5,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.wooCommerce",
+      "typeVersion": 1,
+      "position": [
+        976,
+        528
+      ],
+      "id": "list-get-default",
+      "name": "List Get Default (5)",
+      "credentials": {
+        "wooCommerceApi": {
+          "id": "uGpC30yt9WNfKtA1",
+          "name": "WooCommerce account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "options": {
+          "reset": false
+        }
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1200,
+        384
+      ],
+      "id": "list-iterate",
+      "name": "List Iterate"
+    },
+    {
+      "parameters": {
+        "amount": 0.5
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1424,
+        336
+      ],
+      "id": "rate-limit-delay",
+      "name": "Rate Limit Delay",
+      "webhookId": "rate-limit-webhook"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Parse Command').item.json.chatId }}",
+        "text": "=<strong>{{ $json.id }}</strong> - {{ $json.status }}\n{{ $json.name }}\n\n{{ $json.permalink }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1648,
+        384
+      ],
+      "id": "list-send-telegram",
+      "name": "List Send to Telegram",
+      "webhookId": "5467f03c-bce7-4ec3-8bc4-3104259d9528",
+      "credentials": {
+        "telegramApi": {
+          "id": "VVVfsF0zp9hQn8N8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const param = $json.param;\nconst productId = param || '';\nconst chatId = $json.chatId;\n\nreturn { productId, chatId };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        528,
+        768
+      ],
+      "id": "generate-extract-id",
+      "name": "Generate Extract ID"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "has-product-id",
+              "leftValue": "={{ $json.productId }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        752,
+        768
+      ],
+      "id": "generate-has-id",
+      "name": "Generate Has ID?"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chatId }}",
+        "text": "Please provide a product ID. Usage: <code>generate [product_id]</code>",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        976,
+        912
+      ],
+      "id": "generate-missing-id",
+      "name": "Generate Missing ID",
+      "webhookId": "bab567c6-e09d-4333-86ca-d8b757a25931",
+      "credentials": {
+        "telegramApi": {
+          "id": "VVVfsF0zp9hQn8N8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "VtHe_WtifdGUhlOw9NMlt",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/VtHe_WtifdGUhlOw9NMlt",
+          "cachedResultName": "SUB:Get and Generate by Product ID"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "productId": "={{ $json.productId }}",
+            "chatId": "={{ $json.chatId }}"
+          },
+          "matchingColumns": [
+            "productId"
+          ],
+          "schema": [
+            {
+              "id": "productId",
+              "displayName": "productId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "chatId",
+              "displayName": "chatId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        976,
+        720
+      ],
+      "id": "generate-call-subworkflow",
+      "name": "Call Generate Sub-Workflow"
+    },
+    {
+      "parameters": {
+        "jsCode": "const param = $json.param;\nconst productId = param || '';\nconst chatId = $json.chatId;\n\nreturn { productId, chatId };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        528,
+        1152
+      ],
+      "id": "get-extract-id",
+      "name": "Get Extract ID"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "has-get-id",
+              "leftValue": "={{ $json.productId }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        752,
+        1152
+      ],
+      "id": "get-has-id",
+      "name": "Get Has ID?"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chatId }}",
+        "text": "Please provide a product ID. Usage: <code>get [product_id]</code>",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        976,
+        1296
+      ],
+      "id": "get-missing-id",
+      "name": "Get Missing ID",
+      "webhookId": "52b48ec9-29c6-401d-8717-9bb731635d25",
+      "credentials": {
+        "telegramApi": {
+          "id": "VVVfsF0zp9hQn8N8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "productId": "={{ $json.productId }}"
+      },
+      "type": "n8n-nodes-base.wooCommerce",
+      "typeVersion": 1,
+      "position": [
+        976,
+        1104
+      ],
+      "id": "get-product",
+      "name": "Get Product",
+      "credentials": {
+        "wooCommerceApi": {
+          "id": "uGpC30yt9WNfKtA1",
+          "name": "WooCommerce account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Parse Command').item.json.chatId }}",
+        "text": "=<strong>{{ $json.id }}</strong> - {{ $json.status }}\n{{ $json.name }}\n\n{{ $json.permalink }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1200,
+        1104
+      ],
+      "id": "get-send-telegram",
+      "name": "Get Send to Telegram",
+      "webhookId": "99e212fd-c204-4826-8647-aeb90751038b",
+      "credentials": {
+        "telegramApi": {
+          "id": "VVVfsF0zp9hQn8N8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chatId }}",
+        "text": "\ud83d\udccb <b>Bot Commands:</b>\n\n<b>Marketing:</b>\n<code>market</code> - Generate marketing for 5 recent products\n<code>market [ID]</code> - Generate marketing for specific product\n\n<b>Products:</b>\n<code>list</code> - List 5 recent products\n<code>list [N]</code> - List N products\n<code>list all</code> - List all products\n<code>get [ID]</code> - Get specific product details\n\n<b>Content Generation:</b>\n<code>generate [ID]</code> - Generate content via sub-workflow\n\n<code>help</code> - Show this help message\n\n\ud83d\udca1 Products are tracked to avoid duplicate marketing generation.",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        528,
+        1344
+      ],
+      "id": "send-help",
+      "name": "Send Help",
+      "webhookId": "4d35c3ca-8087-4778-8c1b-a2a779525b9a",
+      "credentials": {
+        "telegramApi": {
+          "id": "VVVfsF0zp9hQn8N8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chatId }}",
+        "text": "\u2753 Unknown command. Type <code>help</code> to see available commands.",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        528,
+        1536
+      ],
+      "id": "send-unknown-command",
+      "name": "Unknown Command",
+      "webhookId": "1ec49f22-d599-4470-aa9e-3b1147787648",
+      "credentials": {
+        "telegramApi": {
+          "id": "VVVfsF0zp9hQn8N8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.message.chat.id }}",
+        "text": "\u274c Invalid user. Access denied.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -144,
+        192
+      ],
+      "id": "invalid-user",
+      "name": "Invalid User",
+      "webhookId": "84375d0d-b152-4563-a328-74d96ae1e2a3",
+      "credentials": {
+        "telegramApi": {
+          "id": "VVVfsF0zp9hQn8N8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## WooCommerce Marketing Generator\n\n### Triggers:\n- **Telegram**: Multiple commands\n- **Schedule**: Runs daily automatically\n\n### Commands:\n- **market** - AI marketing generation\n- **list** - List products\n- **get** - Get product details\n- **generate** - Call sub-workflow\n- **help** - Show commands\n\n### v2 Improvements:\n- Error handling on all API nodes\n- Missing ID fallback messages\n- Rate limiting for Telegram\n- Unknown command handler\n- Product validation checks\n- Configurable user ID (see Config note)",
+        "height": 380,
+        "width": 320
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -544,
+        -272
+      ],
+      "id": "sticky-note",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Marketing Flow\n\n1. Get product(s) from WooCommerce\n2. Validate product data\n3. Check if already processed\n4. Generate AI content (Gemini API)\n5. Validate AI response\n6. Save to Google Sheets\n7. Send to Telegram\n\n**Note:** Image generation removed\n(requires AI nodes package)",
+        "height": 240,
+        "width": 280
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        656,
+        -384
+      ],
+      "id": "sticky-marketing-flow",
+      "name": "Marketing Flow Note"
+    },
+    {
+      "parameters": {
+        "content": "## Error Handling\n\nAll WooCommerce, Google Sheets, and Gemini API nodes have `onError: continueRegularOutput` to prevent workflow crashes.\n\nError notifications are sent to Telegram for:\n- Failed product fetches\n- AI generation failures",
+        "height": 200,
+        "width": 280
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2160,
+        -544
+      ],
+      "id": "sticky-error-handling",
+      "name": "Error Handling Note"
+    },
+    {
+      "parameters": {
+        "content": "## Configuration\n\n**Authorized Telegram User ID:**\n`8430120206`\n\n**Gemini API Setup (REQUIRED):**\n1. Get API key from https://aistudio.google.com/apikey\n2. In n8n Credentials, create new:\n   - Type: \"Query Auth\"\n   - Name: \"Gemini API Key\"\n   - Name field: `key`\n   - Value field: Your API key\n3. Assign to \"Generate Marketing Content\" node\n\n**User ID Config:**\nTo change authorized user, update:\n1. **Validate User** - IF condition leftValue\n2. **Set Schedule Context** - chatId in Code",
+        "height": 300,
+        "width": 300,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        -240
+      ],
+      "id": "config-note",
+      "name": "Configuration"
+    },
+    {
+      "parameters": {
+        "jsCode": "const productData = $('Prepare Product Data').item.json;\n\nconst prompt = `You are a Rockstar and expert Digital Marketing specialist. Create compelling marketing content for this WooCommerce product:\n\n**Product Name:** ${productData.productName}\n**Description:** ${productData.productDescription}\n**Price:** ${productData.productPrice}\n**Categories:** ${productData.productCategories}\n**Tags:** ${productData.productTags}\n**Url:** ${productData.permalink}\n\n\nGenerate the following:\n\n1. **MARKETING HEADLINE** (max 60 characters, attention-grabbing)\n2. **MARKETING DESCRIPTION** (150-200 words, persuasive, highlights benefits, includes call-to-action)\n3. **SOCIAL MEDIA POST** (for Facebook/Instagram, with relevant emojis and hashtags, do not add the permalink)\n4. **VIDEO SCRIPT** (30-second promotional video script with scenes and no voiceover and no text in video)\n5. **IMAGE PROMPT** (detailed prompt for AI image generation showing the product in an appealing marketing context)\n\nFormat your response as JSON with keys: headline, description, socialPost, videoScript, imagePrompt`;\n\nreturn {\n  requestBody: {\n    contents: [{\n      parts: [{\n        text: prompt\n      }]\n    }],\n    generationConfig: {\n      temperature: 0.8,\n      maxOutputTokens: 2048\n    }\n  },\n  productData: productData\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2096,
+        -144
+      ],
+      "id": "prepare-gemini-request",
+      "name": "Prepare Gemini Request"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash-image",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash-image (Nano Banana)"
+        },
+        "prompt": "={{ $('Parse Marketing Response').item.json.imagePrompt }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        3216,
+        -240
+      ],
+      "id": "4435f8ad-6fc4-4d2e-b684-aa601257a5e6",
+      "name": "Generate an image",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "vyE1k8wAmLTyP2Z7",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Parse Marketing Response').item.json.chatId }}",
+        "text": "=\ud83d\ude80 <b>MARKETING CONTENT GENERATED</b> \ud83d\ude80\n\n\ud83d\udce6 <b>Product:</b> {{ $('Parse Marketing Response').item.json.productName }}\n\n\ud83d\udd17 <b>Product URL:</b> {{ $('Parse Marketing Response').item.json.productUrl }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3216,
+        -432
+      ],
+      "id": "71515911-5098-4649-9168-d618a43ac5db",
+      "name": "Send Content to Telegram Raw Content",
+      "webhookId": "2f014d27-7b17-4a40-8adf-baeaa4f6c109",
+      "credentials": {
+        "telegramApi": {
+          "id": "VVVfsF0zp9hQn8N8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendPhoto",
+        "chatId": "={{ $('Parse Marketing Response').item.json.chatId }}",
+        "binaryData": true,
+        "additionalFields": {
+          "caption": "={{ $('Parse Marketing Response').item.json.socialPost }}"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3440,
+        -240
+      ],
+      "id": "send-content-telegram",
+      "name": "Send Generated Image to Telegram",
+      "webhookId": "2f014d27-7b17-4a40-8adf-baeaa4f6c109",
+      "credentials": {
+        "telegramApi": {
+          "id": "VVVfsF0zp9hQn8N8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get all products from the input\nconst products = $input.all().map(item => item.json);\n\nif (products.length === 0) {\n  return { error: true, message: 'No products found' };\n}\n\n// Pick a random product\nconst randomIndex = Math.floor(Math.random() * products.length);\nconst randomProduct = products[randomIndex];\n\n// Get chatId from Store Market Context\nconst chatId = $('Store Market Context').item.json.chatId;\n\nreturn {\n  ...randomProduct,\n  _chatId: chatId\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        976,
+        144
+      ],
+      "id": "pick-random-product",
+      "name": "Pick Random Product"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.message.chat.id }}",
+        "text": "Processing your request. Please wait...",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -144,
+        384
+      ],
+      "id": "ec0c3042-d47a-4996-a050-e804f7bfea38",
+      "name": "Send a text message",
+      "webhookId": "7c57fdb4-0747-4940-b920-8302ceaccb95",
+      "credentials": {
+        "telegramApi": {
+          "id": "VVVfsF0zp9hQn8N8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "video",
+        "modelId": {
+          "__rl": true,
+          "value": "models/veo-3.0-generate-001",
+          "mode": "list",
+          "cachedResultName": "models/veo-3.0-generate-001"
+        },
+        "prompt": "={{ $json.VideoScript }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        3216,
+        -48
+      ],
+      "id": "6d09b345-6c14-40cf-a11c-c00c2ce4736a",
+      "name": "Generate a video1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "vyE1k8wAmLTyP2Z7",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "sendVideo",
+        "chatId": "={{ $('Parse Marketing Response').item.json.chatId }}",
+        "binaryData": true,
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3440,
+        -48
+      ],
+      "id": "ce1d372f-5d53-49fb-be7c-d915bdd0492d",
+      "name": "Send a video",
+      "webhookId": "cebb8a96-0dcc-46fb-932f-4a7ba407155c",
+      "credentials": {
+        "telegramApi": {
+          "id": "VVVfsF0zp9hQn8N8",
+          "name": "Telegram account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Store the context (chatId) before WooCommerce calls\nconst chatId = $json.chatId || 8430120206;\nconst param = $json.param || '';\nconst source = $json.source || 'unknown';\n\nreturn {\n  chatId,\n  param,\n  source,\n  hasParam: param !== ''\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        352,
+        -96
+      ],
+      "id": "store-market-context",
+      "name": "Store Market Context"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Parse Marketing Response').item.json.chatId }}",
+        "text": "=\ud83c\udfaf <b>Headline:</b>\n{{ $('Parse Marketing Response').item.json.headline }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3424,
+        -432
+      ],
+      "id": "16167bad-ac33-4aaf-b356-29f0aa3dcd34",
+      "name": "Send Headline",
+      "webhookId": "e31da9fa-2067-4984-84f3-944e3e296c5e",
+      "credentials": {
+        "telegramApi": {
+          "id": "VVVfsF0zp9hQn8N8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Parse Marketing Response').item.json.chatId }}",
+        "text": "=\ud83d\udcdd <b>Marketing Description:</b>\n{{ $('Parse Marketing Response').item.json.description }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3632,
+        -432
+      ],
+      "id": "c3a83158-8616-4ab6-af11-91bfd6926511",
+      "name": "Send Marketing Description",
+      "webhookId": "17f47776-cb4a-4af6-b2e8-d612d5b1e400",
+      "credentials": {
+        "telegramApi": {
+          "id": "VVVfsF0zp9hQn8N8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Parse Marketing Response').item.json.chatId }}",
+        "text": "=\ud83d\udcf1 <b>Social Media Post:</b>\n{{ $('Parse Marketing Response').item.json.socialPost }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3840,
+        -432
+      ],
+      "id": "4141a8ce-f5a4-422c-9abc-e3290bc53591",
+      "name": "Send Social Media Post",
+      "webhookId": "88451b3b-915b-4fcf-bdd9-f5f92c855806",
+      "credentials": {
+        "telegramApi": {
+          "id": "VVVfsF0zp9hQn8N8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Parse Marketing Response').item.json.chatId }}",
+        "text": "=\ud83d\udcf2 <b>Post to Social Media?</b>\n\nWould you like to post the marketing content for <b>{{ $('Parse Marketing Response').item.json.productName }}</b> to Facebook &amp; Instagram?\n\n\ud83c\udfaf Headline: {{ $('Parse Marketing Response').item.json.headline }}\n\ud83d\udd17 {{ $('Parse Marketing Response').item.json.productUrl }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        },
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "\u2705 Yes, Post to FB & IG",
+                    "additionalFields": {
+                      "callback_data": "post_social_yes_{{ $('Parse Marketing Response').item.json.productId }}"
+                    }
+                  },
+                  {
+                    "text": "\u274c No, Skip",
+                    "additionalFields": {
+                      "callback_data": "post_social_no_{{ $('Parse Marketing Response').item.json.productId }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2400,
+        -100
+      ],
+      "name": "Ask Post to Social Media",
+      "credentials": {
+        "telegramApi": {
+          "id": "VVVfsF0zp9hQn8N8",
+          "name": "Telegram account"
+        }
+      },
+      "id": "8526254a-c933-4a20-873d-3f5038bf5f94"
+    }
+  ],
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Validate User",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Daily Schedule": {
+      "main": [
+        [
+          {
+            "node": "Set Schedule Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate User": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Invalid User",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Command": {
+      "main": [
+        [
+          {
+            "node": "Command Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Schedule Context": {
+      "main": [
+        [
+          {
+            "node": "Command Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Command Router": {
+      "main": [
+        [
+          {
+            "node": "Store Market Context",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "List Extract Params",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Generate Extract ID",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Extract ID",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Help",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Unknown Command",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Market Has ID?": {
+      "main": [
+        [
+          {
+            "node": "Market Get Specific",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Market Get Recent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Market Get Specific": {
+      "main": [
+        [
+          {
+            "node": "Prepare Product Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Market Get Recent": {
+      "main": [
+        [
+          {
+            "node": "Pick Random Product",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Product Data": {
+      "main": [
+        [
+          {
+            "node": "Product Valid?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Product Valid?": {
+      "main": [
+        [
+          {
+            "node": "Check If Processed",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notify Product Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check If Processed": {
+      "main": [
+        [
+          {
+            "node": "Not Processed Yet?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Not Processed Yet?": {
+      "main": [
+        [
+          {
+            "node": "Prepare Gemini Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notify Already Processed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Marketing Content": {
+      "main": [
+        [
+          {
+            "node": "Parse Marketing Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Marketing Response": {
+      "main": [
+        [
+          {
+            "node": "AI Generation OK?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Generation OK?": {
+      "main": [
+        [
+          {
+            "node": "Save to Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notify AI Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Marketing Image": {
+      "main": [
+        [
+          {
+            "node": "Save to Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save to Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Generate an image",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send Content to Telegram Raw Content",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Generate a video1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List Extract Params": {
+      "main": [
+        [
+          {
+            "node": "List Valid Param?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List Valid Param?": {
+      "main": [
+        [
+          {
+            "node": "List Get Products",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "List Get Default (5)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List Get Products": {
+      "main": [
+        [
+          {
+            "node": "List Iterate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List Get Default (5)": {
+      "main": [
+        [
+          {
+            "node": "List Iterate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List Iterate": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Rate Limit Delay",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rate Limit Delay": {
+      "main": [
+        [
+          {
+            "node": "List Send to Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List Send to Telegram": {
+      "main": [
+        [
+          {
+            "node": "List Iterate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Extract ID": {
+      "main": [
+        [
+          {
+            "node": "Generate Has ID?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Has ID?": {
+      "main": [
+        [
+          {
+            "node": "Call Generate Sub-Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Generate Missing ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Extract ID": {
+      "main": [
+        [
+          {
+            "node": "Get Has ID?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Has ID?": {
+      "main": [
+        [
+          {
+            "node": "Get Product",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Missing ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Product": {
+      "main": [
+        [
+          {
+            "node": "Get Send to Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Gemini Request": {
+      "main": [
+        [
+          {
+            "node": "Generate Marketing Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate an image": {
+      "main": [
+        [
+          {
+            "node": "Send Generated Image to Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pick Random Product": {
+      "main": [
+        [
+          {
+            "node": "Prepare Product Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        [
+          {
+            "node": "Parse Command",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate a video1": {
+      "main": [
+        [
+          {
+            "node": "Send a video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Market Context": {
+      "main": [
+        [
+          {
+            "node": "Market Has ID?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Content to Telegram Raw Content": {
+      "main": [
+        [
+          {
+            "node": "Send Headline",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Ask Post to Social Media",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Headline": {
+      "main": [
+        [
+          {
+            "node": "Send Marketing Description",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Marketing Description": {
+      "main": [
+        [
+          {
+            "node": "Send Social Media Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "timeSavedMode": "dynamic",
+    "timezone": "Asia/Singapore"
+  },
+  "staticData": {
+    "node:Daily Schedule": {
+      "recurrenceRules": [
+        8
+      ]
+    }
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "a9cea453-21a3-4688-a9cf-7116b6491f94",
+  "activeVersionId": "a9cea453-21a3-4688-a9cf-7116b6491f94",
+  "versionCounter": 104,
+  "triggerCount": 2,
+  "shared": [
+    {
+      "updatedAt": "2026-01-28T15:09:51.839Z",
+      "createdAt": "2026-01-28T15:09:51.839Z",
+      "role": "workflow:owner",
+      "workflowId": "Rqp5DLzr1EltZIhD",
+      "projectId": "OZpEMZrnioWDCJsC",
+      "project": {
+        "updatedAt": "2026-01-19T07:38:19.868Z",
+        "createdAt": "2026-01-19T07:37:57.912Z",
+        "id": "OZpEMZrnioWDCJsC",
+        "name": "Lemuel Francisco <freelance.lemuelrfrancisco@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "38f71c9d-2cc5-453b-8284-e3d5eb508e7c",
+        "projectRelations": [
+          {
+            "updatedAt": "2026-01-19T07:37:57.912Z",
+            "createdAt": "2026-01-19T07:37:57.912Z",
+            "userId": "38f71c9d-2cc5-453b-8284-e3d5eb508e7c",
+            "projectId": "OZpEMZrnioWDCJsC",
+            "user": {
+              "updatedAt": "2026-02-04T01:02:15.000Z",
+              "createdAt": "2026-01-19T07:37:57.337Z",
+              "id": "38f71c9d-2cc5-453b-8284-e3d5eb508e7c",
+              "email": "freelance.lemuelrfrancisco@gmail.com",
+              "firstName": "Lemuel",
+              "lastName": "Francisco",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2026-01-19T07:38:36.482Z",
+                "personalization_survey_n8n_version": "2.2.4",
+                "companyType": "personal",
+                "reportedSource": "youtube"
+              },
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "VtHe_WtifdGUhlOw9NMlt",
+                "userActivatedAt": 1768896964872,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1769644632310
+                }
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-02-03",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-02-04T02:43:38.759Z",
+    "createdAt": "2026-02-04T02:43:38.759Z",
+    "versionId": "a9cea453-21a3-4688-a9cf-7116b6491f94",
+    "workflowId": "Rqp5DLzr1EltZIhD",
+    "nodes": [
+      {
+        "parameters": {
+          "updates": [
+            "message"
+          ],
+          "additionalFields": {}
+        },
+        "type": "n8n-nodes-base.telegramTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          -592,
+          192
+        ],
+        "id": "telegram-trigger",
+        "name": "Telegram Trigger",
+        "webhookId": "f96489a7-db8b-4d23-8bba-79be8369c86d",
+        "credentials": {
+          "telegramApi": {
+            "id": "VVVfsF0zp9hQn8N8",
+            "name": "Telegram account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "hours",
+                "hoursInterval": 12
+              }
+            ]
+          }
+        },
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          -144,
+          576
+        ],
+        "id": "schedule-trigger",
+        "name": "Daily Schedule"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "user-check",
+                "leftValue": 8430120206,
+                "rightValue": "={{ $json.message.chat.id }}",
+                "operator": {
+                  "type": "number",
+                  "operation": "equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          -368,
+          192
+        ],
+        "id": "validate-user",
+        "name": "Validate User"
+      },
+      {
+        "parameters": {
+          "jsCode": "const text = $('Telegram Trigger').first().json.message.text?.toLowerCase() || '';\nconst parts = text.split(' ');\nconst command = parts[0];\nconst param = parts[1] || '';\nconst chatId = $('Telegram Trigger').first().json.message?.chat.id || 0;\n\nreturn {\n  command,\n  param,\n  chatId,\n  source: 'telegram'\n};"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          80,
+          384
+        ],
+        "id": "parse-command",
+        "name": "Parse Command"
+      },
+      {
+        "parameters": {
+          "jsCode": "return {\n  command: 'market',\n  param: '',\n  chatId: 8430120206,\n  source: 'schedule'\n};"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          80,
+          576
+        ],
+        "id": "schedule-context",
+        "name": "Set Schedule Context"
+      },
+      {
+        "parameters": {
+          "rules": {
+            "values": [
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.command }}",
+                      "rightValue": "market",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      },
+                      "id": "market-cmd"
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "Market"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.command }}",
+                      "rightValue": "list",
+                      "operator": {
+                        "type": "string",
+                        "operation": "contains"
+                      },
+                      "id": "list-cmd"
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "List"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.command }}",
+                      "rightValue": "generate",
+                      "operator": {
+                        "type": "string",
+                        "operation": "contains"
+                      },
+                      "id": "generate-cmd"
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "Generate"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.command }}",
+                      "rightValue": "get",
+                      "operator": {
+                        "type": "string",
+                        "operation": "contains"
+                      },
+                      "id": "get-cmd"
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "Get"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.command }}",
+                      "rightValue": "help",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      },
+                      "id": "help-cmd"
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "Help"
+              }
+            ]
+          },
+          "options": {
+            "fallbackOutput": "extra",
+            "allMatchingOutputs": false
+          }
+        },
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3.4,
+        "position": [
+          304,
+          320
+        ],
+        "id": "command-switch",
+        "name": "Command Router"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "has-param",
+                "leftValue": "={{ $json.hasParam }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          512,
+          -96
+        ],
+        "id": "market-has-id",
+        "name": "Market Has ID?"
+      },
+      {
+        "parameters": {
+          "operation": "get",
+          "productId": "={{ $('Store Market Context').item.json.param }}"
+        },
+        "type": "n8n-nodes-base.wooCommerce",
+        "typeVersion": 1,
+        "position": [
+          976,
+          -48
+        ],
+        "id": "market-get-specific",
+        "name": "Market Get Specific",
+        "credentials": {
+          "wooCommerceApi": {
+            "id": "uGpC30yt9WNfKtA1",
+            "name": "WooCommerce account"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "operation": "getAll",
+          "returnAll": true,
+          "options": {}
+        },
+        "type": "n8n-nodes-base.wooCommerce",
+        "typeVersion": 1,
+        "position": [
+          752,
+          144
+        ],
+        "id": "market-get-recent",
+        "name": "Market Get Recent",
+        "credentials": {
+          "wooCommerceApi": {
+            "id": "uGpC30yt9WNfKtA1",
+            "name": "WooCommerce account"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "jsCode": "const product = $json;\nconst chatId = product._chatId || 8430120206;\n\nif (!product || !product.id) {\n  return {\n    error: true,\n    errorMessage: 'Failed to fetch product data',\n    chatId\n  };\n}\n\nreturn {\n  error: false,\n  productId: product.id,\n  productName: product.name,\n  productDescription: product.description?.replace(/<[^>]*>/g, '') || '',\n  productShortDescription: product.short_description?.replace(/<[^>]*>/g, '') || '',\n  productPrice: product.price,\n  productRegularPrice: product.regular_price,\n  productSalePrice: product.sale_price,\n  productCategories: product.categories?.map(c => c.name).join(', ') || '',\n  productTags: product.tags?.map(t => t.name).join(', ') || '',\n  productImage: product.images?.[0]?.src || '',\n  productUrl: product.permalink,\n  chatId\n};"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1200,
+          0
+        ],
+        "id": "prepare-product-data",
+        "name": "Prepare Product Data"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "no-error",
+                "leftValue": "={{ $json.error }}",
+                "rightValue": true,
+                "operator": {
+                  "type": "boolean",
+                  "operation": "notEquals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          1424,
+          0
+        ],
+        "id": "check-product-valid",
+        "name": "Product Valid?"
+      },
+      {
+        "parameters": {
+          "chatId": "={{ $json.chatId }}",
+          "text": "Failed to fetch product. Please check the product ID and try again.",
+          "additionalFields": {
+            "appendAttribution": false
+          }
+        },
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          1648,
+          144
+        ],
+        "id": "notify-product-error",
+        "name": "Notify Product Error",
+        "webhookId": "c56b4ca2-691a-40e1-bf32-895f034d5eab",
+        "credentials": {
+          "telegramApi": {
+            "id": "VVVfsF0zp9hQn8N8",
+            "name": "Telegram account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "documentId": {
+            "__rl": true,
+            "value": "1k6dLR39LQqj7igNv5LhF34jm26zfXBx3XpwC_Ld0yVw",
+            "mode": "id"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": "ProcessedProducts",
+            "mode": "name"
+          },
+          "filtersUI": {
+            "values": [
+              {
+                "lookupColumn": "ProductID",
+                "lookupValue": "={{ $json.productId }}"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.5,
+        "position": [
+          1648,
+          -48
+        ],
+        "id": "check-processed",
+        "name": "Check If Processed",
+        "alwaysOutputData": true,
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "QrdVcRSV8DgAcNck",
+            "name": "Google Sheets account"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "loose",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "not-processed",
+                "leftValue": "={{ $json.ProductID }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "string",
+                  "operation": "empty",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          1872,
+          -48
+        ],
+        "id": "is-not-processed",
+        "name": "Not Processed Yet?"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpQueryAuth",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify($json.requestBody) }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          2320,
+          -144
+        ],
+        "id": "generate-marketing-content",
+        "name": "Generate Marketing Content",
+        "credentials": {
+          "httpQueryAuth": {
+            "id": "fxd1AYCxA3ZIgQAD",
+            "name": "Gemini API Key"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "jsCode": "const response = $json;\nconst productData = $('Prepare Gemini Request').item.json.productData;\n\n// Extract text from Gemini API response\nlet text = '';\ntry {\n  text = response.candidates?.[0]?.content?.parts?.[0]?.text || '';\n} catch (e) {\n  text = '';\n}\n\n// Check for AI generation error\nif (!text || $json.error) {\n  return {\n    error: true,\n    errorMessage: 'AI content generation failed',\n    productId: productData.productId,\n    productName: productData.productName,\n    chatId: productData.chatId\n  };\n}\n\nlet parsed;\ntry {\n  const jsonMatch = text.match(/\\{[\\s\\S]*\\}/);\n  if (jsonMatch) {\n    parsed = JSON.parse(jsonMatch[0]);\n  } else {\n    parsed = {\n      headline: 'Marketing Content Generated',\n      description: text,\n      socialPost: text.substring(0, 280),\n      videoScript: 'Please see the full description for video content ideas.',\n      imagePrompt: 'Product marketing image'\n    };\n  }\n} catch (e) {\n  parsed = {\n    headline: 'Marketing Content Generated',\n    description: text,\n    socialPost: text.substring(0, 280),\n    videoScript: 'Please see the full description for video content ideas.',\n    imagePrompt: 'Product marketing image'\n  };\n}\n\n// Ensure videoScript and imagePrompt are strings\nlet videoScript = parsed.videoScript;\nif (typeof videoScript === 'object') {\n  videoScript = JSON.stringify(videoScript, null, 2);\n}\n\nlet imagePrompt = parsed.imagePrompt;\nif (typeof imagePrompt === 'object') {\n  imagePrompt = JSON.stringify(imagePrompt, null, 2);\n}\n\nreturn {\n  error: false,\n  headline: parsed.headline || '',\n  description: parsed.description || '',\n  socialPost: parsed.socialPost || '',\n  videoScript: videoScript || '',\n  imagePrompt: imagePrompt || '',\n  productId: productData.productId,\n  productName: productData.productName,\n  productUrl: productData.productUrl,\n  productImage: productData.productImage,\n  chatId: productData.chatId\n};"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2544,
+          -144
+        ],
+        "id": "parse-marketing-content",
+        "name": "Parse Marketing Response"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "no-ai-error",
+                "leftValue": "={{ $json.error }}",
+                "rightValue": true,
+                "operator": {
+                  "type": "boolean",
+                  "operation": "notEquals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          2768,
+          -144
+        ],
+        "id": "check-ai-success",
+        "name": "AI Generation OK?"
+      },
+      {
+        "parameters": {
+          "chatId": "={{ $json.chatId }}",
+          "text": "AI content generation failed for product {{ $json.productName }} (ID: {{ $json.productId }}). Please try again later.",
+          "additionalFields": {
+            "appendAttribution": false
+          }
+        },
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          2992,
+          -48
+        ],
+        "id": "notify-ai-error",
+        "name": "Notify AI Error",
+        "webhookId": "2bc8f648-17be-4f16-8fe0-d9e4fe407adb",
+        "credentials": {
+          "telegramApi": {
+            "id": "VVVfsF0zp9hQn8N8",
+            "name": "Telegram account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "append",
+          "documentId": {
+            "__rl": true,
+            "value": "1k6dLR39LQqj7igNv5LhF34jm26zfXBx3XpwC_Ld0yVw",
+            "mode": "id"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": "ProcessedProducts",
+            "mode": "name"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "ProductID": "={{ $('Parse Marketing Response').item.json.productId }}",
+              "ProductName": "={{ $('Parse Marketing Response').item.json.productName }}",
+              "ProcessedAt": "={{ $now.toISO() }}",
+              "Headline": "={{ $('Parse Marketing Response').item.json.headline }}",
+              "Description": "={{ $('Parse Marketing Response').item.json.description }}",
+              "SocialPost": "={{ $('Parse Marketing Response').item.json.socialPost }}",
+              "VideoScript": "={{ JSON.stringify($('Parse Marketing Response').item.json.videoScript) }}",
+              "ImagePrompt": "={{ JSON.stringify($('Parse Marketing Response').item.json.imagePrompt) }}",
+              "ProductURL": "={{ $('Parse Marketing Response').item.json.productUrl }}",
+              "DateTimeCreated": "={{ $now.format('yyyy-MM-dd HH:mm:ss') }}"
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "ProductID",
+                "displayName": "ProductID",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "ProductName",
+                "displayName": "ProductName",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "ProcessedAt",
+                "displayName": "ProcessedAt",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Headline",
+                "displayName": "Headline",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Description",
+                "displayName": "Description",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "SocialPost",
+                "displayName": "SocialPost",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "VideoScript",
+                "displayName": "VideoScript",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "ImagePrompt",
+                "displayName": "ImagePrompt",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "ProductURL",
+                "displayName": "ProductURL",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "DateTimeCreated",
+                "displayName": "DateTimeCreated",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.5,
+        "position": [
+          2992,
+          -240
+        ],
+        "id": "save-to-sheets",
+        "name": "Save to Google Sheets",
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "QrdVcRSV8DgAcNck",
+            "name": "Google Sheets account"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "chatId": "={{ $('Prepare Product Data').item.json.chatId }}",
+          "text": "=\u26a0\ufe0f Product ID {{ $('Prepare Product Data').item.json.productId }} ({{ $('Prepare Product Data').item.json.productName }}) has already been processed. Skipping to avoid duplicate content.",
+          "additionalFields": {
+            "appendAttribution": false
+          }
+        },
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          2096,
+          48
+        ],
+        "id": "send-already-processed",
+        "name": "Notify Already Processed",
+        "webhookId": "818b38eb-2d18-49c7-9a79-4af2203c96be",
+        "credentials": {
+          "telegramApi": {
+            "id": "VVVfsF0zp9hQn8N8",
+            "name": "Telegram account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const param = $json.param;\nconst isGetAll = param === 'all';\nconst items = param !== 'all' && Number(param) ? param : '';\n\nreturn { isGetAll, items, chatId: $json.chatId };"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          528,
+          384
+        ],
+        "id": "list-extract-params",
+        "name": "List Extract Params"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "has-items",
+                "leftValue": "={{ $json.items }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEmpty",
+                  "singleValue": true
+                }
+              },
+              {
+                "id": "is-get-all",
+                "leftValue": "={{ $json.isGetAll }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "or"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          752,
+          384
+        ],
+        "id": "list-has-valid-param",
+        "name": "List Valid Param?"
+      },
+      {
+        "parameters": {
+          "operation": "getAll",
+          "returnAll": "={{ $json.isGetAll }}",
+          "limit": "={{ $json.items || 5 }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.wooCommerce",
+        "typeVersion": 1,
+        "position": [
+          976,
+          336
+        ],
+        "id": "list-get-products",
+        "name": "List Get Products",
+        "credentials": {
+          "wooCommerceApi": {
+            "id": "uGpC30yt9WNfKtA1",
+            "name": "WooCommerce account"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "operation": "getAll",
+          "limit": 5,
+          "options": {}
+        },
+        "type": "n8n-nodes-base.wooCommerce",
+        "typeVersion": 1,
+        "position": [
+          976,
+          528
+        ],
+        "id": "list-get-default",
+        "name": "List Get Default (5)",
+        "credentials": {
+          "wooCommerceApi": {
+            "id": "uGpC30yt9WNfKtA1",
+            "name": "WooCommerce account"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "options": {
+            "reset": false
+          }
+        },
+        "type": "n8n-nodes-base.splitInBatches",
+        "typeVersion": 3,
+        "position": [
+          1200,
+          384
+        ],
+        "id": "list-iterate",
+        "name": "List Iterate"
+      },
+      {
+        "parameters": {
+          "amount": 0.5
+        },
+        "type": "n8n-nodes-base.wait",
+        "typeVersion": 1.1,
+        "position": [
+          1424,
+          336
+        ],
+        "id": "rate-limit-delay",
+        "name": "Rate Limit Delay",
+        "webhookId": "rate-limit-webhook"
+      },
+      {
+        "parameters": {
+          "chatId": "={{ $('Parse Command').item.json.chatId }}",
+          "text": "=<strong>{{ $json.id }}</strong> - {{ $json.status }}\n{{ $json.name }}\n\n{{ $json.permalink }}",
+          "additionalFields": {
+            "appendAttribution": false,
+            "parse_mode": "HTML"
+          }
+        },
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          1648,
+          384
+        ],
+        "id": "list-send-telegram",
+        "name": "List Send to Telegram",
+        "webhookId": "5467f03c-bce7-4ec3-8bc4-3104259d9528",
+        "credentials": {
+          "telegramApi": {
+            "id": "VVVfsF0zp9hQn8N8",
+            "name": "Telegram account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const param = $json.param;\nconst productId = param || '';\nconst chatId = $json.chatId;\n\nreturn { productId, chatId };"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          528,
+          768
+        ],
+        "id": "generate-extract-id",
+        "name": "Generate Extract ID"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "has-product-id",
+                "leftValue": "={{ $json.productId }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEmpty",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          752,
+          768
+        ],
+        "id": "generate-has-id",
+        "name": "Generate Has ID?"
+      },
+      {
+        "parameters": {
+          "chatId": "={{ $json.chatId }}",
+          "text": "Please provide a product ID. Usage: <code>generate [product_id]</code>",
+          "additionalFields": {
+            "appendAttribution": false,
+            "parse_mode": "HTML"
+          }
+        },
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          976,
+          912
+        ],
+        "id": "generate-missing-id",
+        "name": "Generate Missing ID",
+        "webhookId": "bab567c6-e09d-4333-86ca-d8b757a25931",
+        "credentials": {
+          "telegramApi": {
+            "id": "VVVfsF0zp9hQn8N8",
+            "name": "Telegram account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "workflowId": {
+            "__rl": true,
+            "value": "VtHe_WtifdGUhlOw9NMlt",
+            "mode": "list",
+            "cachedResultUrl": "/workflow/VtHe_WtifdGUhlOw9NMlt",
+            "cachedResultName": "SUB:Get and Generate by Product ID"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "productId": "={{ $json.productId }}",
+              "chatId": "={{ $json.chatId }}"
+            },
+            "matchingColumns": [
+              "productId"
+            ],
+            "schema": [
+              {
+                "id": "productId",
+                "displayName": "productId",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "chatId",
+                "displayName": "chatId",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "number",
+                "removed": false
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": true
+          },
+          "options": {
+            "waitForSubWorkflow": true
+          }
+        },
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.3,
+        "position": [
+          976,
+          720
+        ],
+        "id": "generate-call-subworkflow",
+        "name": "Call Generate Sub-Workflow"
+      },
+      {
+        "parameters": {
+          "jsCode": "const param = $json.param;\nconst productId = param || '';\nconst chatId = $json.chatId;\n\nreturn { productId, chatId };"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          528,
+          1152
+        ],
+        "id": "get-extract-id",
+        "name": "Get Extract ID"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "has-get-id",
+                "leftValue": "={{ $json.productId }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEmpty",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          752,
+          1152
+        ],
+        "id": "get-has-id",
+        "name": "Get Has ID?"
+      },
+      {
+        "parameters": {
+          "chatId": "={{ $json.chatId }}",
+          "text": "Please provide a product ID. Usage: <code>get [product_id]</code>",
+          "additionalFields": {
+            "appendAttribution": false,
+            "parse_mode": "HTML"
+          }
+        },
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          976,
+          1296
+        ],
+        "id": "get-missing-id",
+        "name": "Get Missing ID",
+        "webhookId": "52b48ec9-29c6-401d-8717-9bb731635d25",
+        "credentials": {
+          "telegramApi": {
+            "id": "VVVfsF0zp9hQn8N8",
+            "name": "Telegram account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "get",
+          "productId": "={{ $json.productId }}"
+        },
+        "type": "n8n-nodes-base.wooCommerce",
+        "typeVersion": 1,
+        "position": [
+          976,
+          1104
+        ],
+        "id": "get-product",
+        "name": "Get Product",
+        "credentials": {
+          "wooCommerceApi": {
+            "id": "uGpC30yt9WNfKtA1",
+            "name": "WooCommerce account"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "chatId": "={{ $('Parse Command').item.json.chatId }}",
+          "text": "=<strong>{{ $json.id }}</strong> - {{ $json.status }}\n{{ $json.name }}\n\n{{ $json.permalink }}",
+          "additionalFields": {
+            "appendAttribution": false,
+            "parse_mode": "HTML"
+          }
+        },
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          1200,
+          1104
+        ],
+        "id": "get-send-telegram",
+        "name": "Get Send to Telegram",
+        "webhookId": "99e212fd-c204-4826-8647-aeb90751038b",
+        "credentials": {
+          "telegramApi": {
+            "id": "VVVfsF0zp9hQn8N8",
+            "name": "Telegram account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "chatId": "={{ $json.chatId }}",
+          "text": "\ud83d\udccb <b>Bot Commands:</b>\n\n<b>Marketing:</b>\n<code>market</code> - Generate marketing for 5 recent products\n<code>market [ID]</code> - Generate marketing for specific product\n\n<b>Products:</b>\n<code>list</code> - List 5 recent products\n<code>list [N]</code> - List N products\n<code>list all</code> - List all products\n<code>get [ID]</code> - Get specific product details\n\n<b>Content Generation:</b>\n<code>generate [ID]</code> - Generate content via sub-workflow\n\n<code>help</code> - Show this help message\n\n\ud83d\udca1 Products are tracked to avoid duplicate marketing generation.",
+          "additionalFields": {
+            "appendAttribution": false,
+            "parse_mode": "HTML"
+          }
+        },
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          528,
+          1344
+        ],
+        "id": "send-help",
+        "name": "Send Help",
+        "webhookId": "4d35c3ca-8087-4778-8c1b-a2a779525b9a",
+        "credentials": {
+          "telegramApi": {
+            "id": "VVVfsF0zp9hQn8N8",
+            "name": "Telegram account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "chatId": "={{ $json.chatId }}",
+          "text": "\u2753 Unknown command. Type <code>help</code> to see available commands.",
+          "additionalFields": {
+            "appendAttribution": false,
+            "parse_mode": "HTML"
+          }
+        },
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          528,
+          1536
+        ],
+        "id": "send-unknown-command",
+        "name": "Unknown Command",
+        "webhookId": "1ec49f22-d599-4470-aa9e-3b1147787648",
+        "credentials": {
+          "telegramApi": {
+            "id": "VVVfsF0zp9hQn8N8",
+            "name": "Telegram account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "chatId": "={{ $json.message.chat.id }}",
+          "text": "\u274c Invalid user. Access denied.",
+          "additionalFields": {}
+        },
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          -144,
+          192
+        ],
+        "id": "invalid-user",
+        "name": "Invalid User",
+        "webhookId": "84375d0d-b152-4563-a328-74d96ae1e2a3",
+        "credentials": {
+          "telegramApi": {
+            "id": "VVVfsF0zp9hQn8N8",
+            "name": "Telegram account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "content": "## WooCommerce Marketing Generator\n\n### Triggers:\n- **Telegram**: Multiple commands\n- **Schedule**: Runs daily automatically\n\n### Commands:\n- **market** - AI marketing generation\n- **list** - List products\n- **get** - Get product details\n- **generate** - Call sub-workflow\n- **help** - Show commands\n\n### v2 Improvements:\n- Error handling on all API nodes\n- Missing ID fallback messages\n- Rate limiting for Telegram\n- Unknown command handler\n- Product validation checks\n- Configurable user ID (see Config note)",
+          "height": 380,
+          "width": 320
+        },
+        "type": "n8n-nodes-base.stickyNote",
+        "typeVersion": 1,
+        "position": [
+          -544,
+          -272
+        ],
+        "id": "sticky-note",
+        "name": "Sticky Note"
+      },
+      {
+        "parameters": {
+          "content": "## Marketing Flow\n\n1. Get product(s) from WooCommerce\n2. Validate product data\n3. Check if already processed\n4. Generate AI content (Gemini API)\n5. Validate AI response\n6. Save to Google Sheets\n7. Send to Telegram\n\n**Note:** Image generation removed\n(requires AI nodes package)",
+          "height": 240,
+          "width": 280
+        },
+        "type": "n8n-nodes-base.stickyNote",
+        "typeVersion": 1,
+        "position": [
+          656,
+          -384
+        ],
+        "id": "sticky-marketing-flow",
+        "name": "Marketing Flow Note"
+      },
+      {
+        "parameters": {
+          "content": "## Error Handling\n\nAll WooCommerce, Google Sheets, and Gemini API nodes have `onError: continueRegularOutput` to prevent workflow crashes.\n\nError notifications are sent to Telegram for:\n- Failed product fetches\n- AI generation failures",
+          "height": 200,
+          "width": 280
+        },
+        "type": "n8n-nodes-base.stickyNote",
+        "typeVersion": 1,
+        "position": [
+          2160,
+          -544
+        ],
+        "id": "sticky-error-handling",
+        "name": "Error Handling Note"
+      },
+      {
+        "parameters": {
+          "content": "## Configuration\n\n**Authorized Telegram User ID:**\n`8430120206`\n\n**Gemini API Setup (REQUIRED):**\n1. Get API key from https://aistudio.google.com/apikey\n2. In n8n Credentials, create new:\n   - Type: \"Query Auth\"\n   - Name: \"Gemini API Key\"\n   - Name field: `key`\n   - Value field: Your API key\n3. Assign to \"Generate Marketing Content\" node\n\n**User ID Config:**\nTo change authorized user, update:\n1. **Validate User** - IF condition leftValue\n2. **Set Schedule Context** - chatId in Code",
+          "height": 300,
+          "width": 300,
+          "color": 4
+        },
+        "type": "n8n-nodes-base.stickyNote",
+        "typeVersion": 1,
+        "position": [
+          -160,
+          -240
+        ],
+        "id": "config-note",
+        "name": "Configuration"
+      },
+      {
+        "parameters": {
+          "jsCode": "const productData = $('Prepare Product Data').item.json;\n\nconst prompt = `You are a Rockstar and expert Digital Marketing specialist. Create compelling marketing content for this WooCommerce product:\n\n**Product Name:** ${productData.productName}\n**Description:** ${productData.productDescription}\n**Price:** ${productData.productPrice}\n**Categories:** ${productData.productCategories}\n**Tags:** ${productData.productTags}\n**Url:** ${productData.permalink}\n\n\nGenerate the following:\n\n1. **MARKETING HEADLINE** (max 60 characters, attention-grabbing)\n2. **MARKETING DESCRIPTION** (150-200 words, persuasive, highlights benefits, includes call-to-action)\n3. **SOCIAL MEDIA POST** (for Facebook/Instagram, with relevant emojis and hashtags, do not add the permalink)\n4. **VIDEO SCRIPT** (30-second promotional video script with scenes and no voiceover and no text in video)\n5. **IMAGE PROMPT** (detailed prompt for AI image generation showing the product in an appealing marketing context)\n\nFormat your response as JSON with keys: headline, description, socialPost, videoScript, imagePrompt`;\n\nreturn {\n  requestBody: {\n    contents: [{\n      parts: [{\n        text: prompt\n      }]\n    }],\n    generationConfig: {\n      temperature: 0.8,\n      maxOutputTokens: 2048\n    }\n  },\n  productData: productData\n};"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2096,
+          -144
+        ],
+        "id": "prepare-gemini-request",
+        "name": "Prepare Gemini Request"
+      },
+      {
+        "parameters": {
+          "resource": "image",
+          "modelId": {
+            "__rl": true,
+            "value": "models/gemini-2.5-flash-image",
+            "mode": "list",
+            "cachedResultName": "models/gemini-2.5-flash-image (Nano Banana)"
+          },
+          "prompt": "={{ $('Parse Marketing Response').item.json.imagePrompt }}",
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.googleGemini",
+        "typeVersion": 1.1,
+        "position": [
+          3216,
+          -240
+        ],
+        "id": "4435f8ad-6fc4-4d2e-b684-aa601257a5e6",
+        "name": "Generate an image",
+        "credentials": {
+          "googlePalmApi": {
+            "id": "vyE1k8wAmLTyP2Z7",
+            "name": "Google Gemini(PaLM) Api account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "chatId": "={{ $('Parse Marketing Response').item.json.chatId }}",
+          "text": "=\ud83d\ude80 <b>MARKETING CONTENT GENERATED</b> \ud83d\ude80\n\n\ud83d\udce6 <b>Product:</b> {{ $('Parse Marketing Response').item.json.productName }}\n\n\ud83d\udd17 <b>Product URL:</b> {{ $('Parse Marketing Response').item.json.productUrl }}",
+          "additionalFields": {
+            "appendAttribution": false,
+            "parse_mode": "HTML"
+          }
+        },
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          3216,
+          -432
+        ],
+        "id": "71515911-5098-4649-9168-d618a43ac5db",
+        "name": "Send Content to Telegram Raw Content",
+        "webhookId": "2f014d27-7b17-4a40-8adf-baeaa4f6c109",
+        "credentials": {
+          "telegramApi": {
+            "id": "VVVfsF0zp9hQn8N8",
+            "name": "Telegram account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "sendPhoto",
+          "chatId": "={{ $('Parse Marketing Response').item.json.chatId }}",
+          "binaryData": true,
+          "additionalFields": {
+            "caption": "={{ $('Parse Marketing Response').item.json.socialPost }}"
+          }
+        },
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          3440,
+          -240
+        ],
+        "id": "send-content-telegram",
+        "name": "Send Generated Image to Telegram",
+        "webhookId": "2f014d27-7b17-4a40-8adf-baeaa4f6c109",
+        "credentials": {
+          "telegramApi": {
+            "id": "VVVfsF0zp9hQn8N8",
+            "name": "Telegram account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "// Get all products from the input\nconst products = $input.all().map(item => item.json);\n\nif (products.length === 0) {\n  return { error: true, message: 'No products found' };\n}\n\n// Pick a random product\nconst randomIndex = Math.floor(Math.random() * products.length);\nconst randomProduct = products[randomIndex];\n\n// Get chatId from Store Market Context\nconst chatId = $('Store Market Context').item.json.chatId;\n\nreturn {\n  ...randomProduct,\n  _chatId: chatId\n};"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          976,
+          144
+        ],
+        "id": "pick-random-product",
+        "name": "Pick Random Product"
+      },
+      {
+        "parameters": {
+          "chatId": "={{ $json.message.chat.id }}",
+          "text": "Processing your request. Please wait...",
+          "additionalFields": {
+            "appendAttribution": false
+          }
+        },
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          -144,
+          384
+        ],
+        "id": "ec0c3042-d47a-4996-a050-e804f7bfea38",
+        "name": "Send a text message",
+        "webhookId": "7c57fdb4-0747-4940-b920-8302ceaccb95",
+        "credentials": {
+          "telegramApi": {
+            "id": "VVVfsF0zp9hQn8N8",
+            "name": "Telegram account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "resource": "video",
+          "modelId": {
+            "__rl": true,
+            "value": "models/veo-3.0-generate-001",
+            "mode": "list",
+            "cachedResultName": "models/veo-3.0-generate-001"
+          },
+          "prompt": "={{ $json.VideoScript }}",
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.googleGemini",
+        "typeVersion": 1.1,
+        "position": [
+          3216,
+          -48
+        ],
+        "id": "6d09b345-6c14-40cf-a11c-c00c2ce4736a",
+        "name": "Generate a video1",
+        "credentials": {
+          "googlePalmApi": {
+            "id": "vyE1k8wAmLTyP2Z7",
+            "name": "Google Gemini(PaLM) Api account"
+          }
+        },
+        "disabled": true
+      },
+      {
+        "parameters": {
+          "operation": "sendVideo",
+          "chatId": "={{ $('Parse Marketing Response').item.json.chatId }}",
+          "binaryData": true,
+          "additionalFields": {}
+        },
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          3440,
+          -48
+        ],
+        "id": "ce1d372f-5d53-49fb-be7c-d915bdd0492d",
+        "name": "Send a video",
+        "webhookId": "cebb8a96-0dcc-46fb-932f-4a7ba407155c",
+        "credentials": {
+          "telegramApi": {
+            "id": "VVVfsF0zp9hQn8N8",
+            "name": "Telegram account"
+          }
+        },
+        "disabled": true
+      },
+      {
+        "parameters": {
+          "jsCode": "// Store the context (chatId) before WooCommerce calls\nconst chatId = $json.chatId || 8430120206;\nconst param = $json.param || '';\nconst source = $json.source || 'unknown';\n\nreturn {\n  chatId,\n  param,\n  source,\n  hasParam: param !== ''\n};"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          352,
+          -96
+        ],
+        "id": "store-market-context",
+        "name": "Store Market Context"
+      },
+      {
+        "parameters": {
+          "chatId": "={{ $('Parse Marketing Response').item.json.chatId }}",
+          "text": "=\ud83c\udfaf <b>Headline:</b>\n{{ $('Parse Marketing Response').item.json.headline }}",
+          "additionalFields": {
+            "appendAttribution": false,
+            "parse_mode": "HTML"
+          }
+        },
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          3424,
+          -432
+        ],
+        "id": "16167bad-ac33-4aaf-b356-29f0aa3dcd34",
+        "name": "Send Headline",
+        "webhookId": "e31da9fa-2067-4984-84f3-944e3e296c5e",
+        "credentials": {
+          "telegramApi": {
+            "id": "VVVfsF0zp9hQn8N8",
+            "name": "Telegram account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "chatId": "={{ $('Parse Marketing Response').item.json.chatId }}",
+          "text": "=\ud83d\udcdd <b>Marketing Description:</b>\n{{ $('Parse Marketing Response').item.json.description }}",
+          "additionalFields": {
+            "appendAttribution": false,
+            "parse_mode": "HTML"
+          }
+        },
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          3632,
+          -432
+        ],
+        "id": "c3a83158-8616-4ab6-af11-91bfd6926511",
+        "name": "Send Marketing Description",
+        "webhookId": "17f47776-cb4a-4af6-b2e8-d612d5b1e400",
+        "credentials": {
+          "telegramApi": {
+            "id": "VVVfsF0zp9hQn8N8",
+            "name": "Telegram account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "chatId": "={{ $('Parse Marketing Response').item.json.chatId }}",
+          "text": "=\ud83d\udcf1 <b>Social Media Post:</b>\n{{ $('Parse Marketing Response').item.json.socialPost }}",
+          "additionalFields": {
+            "appendAttribution": false,
+            "parse_mode": "HTML"
+          }
+        },
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          3840,
+          -432
+        ],
+        "id": "4141a8ce-f5a4-422c-9abc-e3290bc53591",
+        "name": "Send Social Media Post",
+        "webhookId": "88451b3b-915b-4fcf-bdd9-f5f92c855806",
+        "credentials": {
+          "telegramApi": {
+            "id": "VVVfsF0zp9hQn8N8",
+            "name": "Telegram account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "chatId": "={{ $('Parse Marketing Response').item.json.chatId }}",
+          "text": "=\ud83d\udcf2 <b>Post to Social Media?</b>\n\nWould you like to post the marketing content for <b>{{ $('Parse Marketing Response').item.json.productName }}</b> to Facebook &amp; Instagram?\n\n\ud83c\udfaf Headline: {{ $('Parse Marketing Response').item.json.headline }}\n\ud83d\udd17 {{ $('Parse Marketing Response').item.json.productUrl }}",
+          "additionalFields": {
+            "appendAttribution": false,
+            "parse_mode": "HTML"
+          },
+          "replyMarkup": "inlineKeyboard",
+          "inlineKeyboard": {
+            "rows": [
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "\u2705 Yes, Post to FB & IG",
+                      "additionalFields": {
+                        "callback_data": "post_social_yes_{{ $('Parse Marketing Response').item.json.productId }}"
+                      }
+                    },
+                    {
+                      "text": "\u274c No, Skip",
+                      "additionalFields": {
+                        "callback_data": "post_social_no_{{ $('Parse Marketing Response').item.json.productId }}"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          2400,
+          -100
+        ],
+        "name": "Ask Post to Social Media",
+        "credentials": {
+          "telegramApi": {
+            "id": "VVVfsF0zp9hQn8N8",
+            "name": "Telegram account"
+          }
+        },
+        "id": "8526254a-c933-4a20-873d-3f5038bf5f94"
+      }
+    ],
+    "connections": {
+      "Telegram Trigger": {
+        "main": [
+          [
+            {
+              "node": "Validate User",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Daily Schedule": {
+        "main": [
+          [
+            {
+              "node": "Set Schedule Context",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Validate User": {
+        "main": [
+          [
+            {
+              "node": "Send a text message",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Invalid User",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parse Command": {
+        "main": [
+          [
+            {
+              "node": "Command Router",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Set Schedule Context": {
+        "main": [
+          [
+            {
+              "node": "Command Router",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Command Router": {
+        "main": [
+          [
+            {
+              "node": "Store Market Context",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "List Extract Params",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Generate Extract ID",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Get Extract ID",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Send Help",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Unknown Command",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Market Has ID?": {
+        "main": [
+          [
+            {
+              "node": "Market Get Specific",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Market Get Recent",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Market Get Specific": {
+        "main": [
+          [
+            {
+              "node": "Prepare Product Data",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Market Get Recent": {
+        "main": [
+          [
+            {
+              "node": "Pick Random Product",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Prepare Product Data": {
+        "main": [
+          [
+            {
+              "node": "Product Valid?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Product Valid?": {
+        "main": [
+          [
+            {
+              "node": "Check If Processed",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Notify Product Error",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Check If Processed": {
+        "main": [
+          [
+            {
+              "node": "Not Processed Yet?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Not Processed Yet?": {
+        "main": [
+          [
+            {
+              "node": "Prepare Gemini Request",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Notify Already Processed",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Generate Marketing Content": {
+        "main": [
+          [
+            {
+              "node": "Parse Marketing Response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parse Marketing Response": {
+        "main": [
+          [
+            {
+              "node": "AI Generation OK?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "AI Generation OK?": {
+        "main": [
+          [
+            {
+              "node": "Save to Google Sheets",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Notify AI Error",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Generate Marketing Image": {
+        "main": [
+          [
+            {
+              "node": "Save to Google Sheets",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Save to Google Sheets": {
+        "main": [
+          [
+            {
+              "node": "Generate an image",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Send Content to Telegram Raw Content",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Generate a video1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "List Extract Params": {
+        "main": [
+          [
+            {
+              "node": "List Valid Param?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "List Valid Param?": {
+        "main": [
+          [
+            {
+              "node": "List Get Products",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "List Get Default (5)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "List Get Products": {
+        "main": [
+          [
+            {
+              "node": "List Iterate",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "List Get Default (5)": {
+        "main": [
+          [
+            {
+              "node": "List Iterate",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "List Iterate": {
+        "main": [
+          [],
+          [
+            {
+              "node": "Rate Limit Delay",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Rate Limit Delay": {
+        "main": [
+          [
+            {
+              "node": "List Send to Telegram",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "List Send to Telegram": {
+        "main": [
+          [
+            {
+              "node": "List Iterate",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Generate Extract ID": {
+        "main": [
+          [
+            {
+              "node": "Generate Has ID?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Generate Has ID?": {
+        "main": [
+          [
+            {
+              "node": "Call Generate Sub-Workflow",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Generate Missing ID",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Extract ID": {
+        "main": [
+          [
+            {
+              "node": "Get Has ID?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Has ID?": {
+        "main": [
+          [
+            {
+              "node": "Get Product",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Get Missing ID",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Product": {
+        "main": [
+          [
+            {
+              "node": "Get Send to Telegram",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Prepare Gemini Request": {
+        "main": [
+          [
+            {
+              "node": "Generate Marketing Content",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Generate an image": {
+        "main": [
+          [
+            {
+              "node": "Send Generated Image to Telegram",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Pick Random Product": {
+        "main": [
+          [
+            {
+              "node": "Prepare Product Data",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Send a text message": {
+        "main": [
+          [
+            {
+              "node": "Parse Command",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Generate a video1": {
+        "main": [
+          [
+            {
+              "node": "Send a video",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Store Market Context": {
+        "main": [
+          [
+            {
+              "node": "Market Has ID?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Send Content to Telegram Raw Content": {
+        "main": [
+          [
+            {
+              "node": "Send Headline",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Ask Post to Social Media",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Send Headline": {
+        "main": [
+          [
+            {
+              "node": "Send Marketing Description",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Send Marketing Description": {
+        "main": [
+          [
+            {
+              "node": "Send Social Media Post",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Lemuel Francisco",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-02-04T02:43:40.762Z",
+        "id": 46,
+        "workflowId": "Rqp5DLzr1EltZIhD",
+        "versionId": "a9cea453-21a3-4688-a9cf-7116b6491f94",
+        "event": "activated",
+        "userId": "38f71c9d-2cc5-453b-8284-e3d5eb508e7c"
+      }
+    ]
+  }
+}

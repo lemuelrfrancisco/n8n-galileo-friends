@@ -1,0 +1,974 @@
+{
+  "updatedAt": "2026-02-04T02:08:56.528Z",
+  "createdAt": "2026-02-02T22:39:48.114Z",
+  "id": "PPSrDTxvHnGpqnESHXkxt",
+  "name": "WooCommerce Product Update with AI Marketing Team",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "height": 120,
+        "width": 200,
+        "color": 4
+      },
+      "id": "96df22b1-2aa9-43b3-be48-3a547f2bc31e",
+      "name": "Sticky Note - Triggers",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1136,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "height": 100,
+        "width": 340,
+        "color": 5
+      },
+      "id": "5b6c1a32-5b52-42e7-967e-742ad0a35d70",
+      "name": "Sticky Note - Input",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -880,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "height": 100,
+        "width": 1400,
+        "color": 6
+      },
+      "id": "7923a638-3ae0-49df-9738-f018ae0fd810",
+      "name": "Sticky Note - AI Team",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "height": 80,
+        "width": 340,
+        "color": 2
+      },
+      "id": "cda697af-e212-4ae5-8ad9-2edfa275754b",
+      "name": "Sticky Note - Expensive",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -224,
+        464
+      ]
+    },
+    {
+      "parameters": {
+        "height": 80,
+        "width": 360,
+        "color": 3
+      },
+      "id": "63167bb3-ce5d-4015-bc22-86186d1a902b",
+      "name": "Sticky Note - Logging",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1760,
+        144
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "b651c0b6-ca45-4492-9e2e-afc5e5fb6e1a",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1088,
+        172
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 24
+            }
+          ]
+        }
+      },
+      "id": "75adef0e-fbb1-4459-97a2-7eff4ee3d09a",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1088,
+        364
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1k6dLR39LQqj7igNv5LhF34jm26zfXBx3XpwC_Ld0yVw",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "ProductEvaluations",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "f5e87fb2-dc12-4871-84e8-fbf37f474d3c",
+      "name": "Read ProductEvaluations",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -864,
+        268
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "QrdVcRSV8DgAcNck",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get evaluations from the earlier node\nconst evaluations = $('Read ProductEvaluations').all();\n// Get reference prices from direct input (Read ProductReference)\nconst referenceItems = $input.all();\n\n// Build lookup map from reference data by name (case-insensitive)\nconst referenceMap = {};\nfor (const ref of referenceItems) {\n  const name = (ref.json.Name || '').trim().toLowerCase();\n  const priceText = ref.json.Price || '';\n  // Parse \"Buy $13.90 - $13.90\" format - extract first dollar amount as cost\n  const priceMatch = priceText.match(/\\$?([\\d.]+)/);\n  const costPrice = priceMatch ? parseFloat(priceMatch[1]) : 0;\n  if (name) {\n    referenceMap[name] = costPrice;\n  }\n}\n\nconst preparedProducts = [];\n\nfor (const item of evaluations) {\n  const product = item.json;\n  \n  // Skip rows without ProductID\n  if (!product.ProductID) continue;\n  \n  const productName = (product.ProductName || product.SuggestedName || '').trim();\n  const costPrice = referenceMap[productName.toLowerCase()] || 0;\n  const suggestedRetailPrice = parseFloat(product.SuggestedRetailPrice) || 0;\n  \n  // Calculate margin: (suggested - cost) / suggested\n  const margin = suggestedRetailPrice > 0 \n    ? (suggestedRetailPrice - costPrice) / suggestedRetailPrice \n    : 0;\n  const isProfitable = costPrice > 0 && margin >= 0.15; // 15% minimum margin\n  \n  preparedProducts.push({\n    productId: product.ProductID,\n    productName: productName,\n    suggestedName: product.SuggestedName || '',\n    suggestedDesc: product.SuggestedDesc || '',\n    suggestedRetailPrice: suggestedRetailPrice,\n    costPrice: costPrice,\n    marginPercent: Math.round(margin * 100),\n    isProfitable: isProfitable,\n    priceVerdict: (product.PriceVerdict || '').toUpperCase().trim(),\n    originalData: product\n  });\n}\n\nreturn preparedProducts.map(p => ({ json: p }));"
+      },
+      "id": "00b356af-948b-44ff-a752-facc2bcfb08b",
+      "name": "Prepare Product Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -640,
+        268
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.priceVerdict }}",
+                    "rightValue": "FAIR",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "FAIR"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.priceVerdict }}",
+                    "rightValue": "CHEAP",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "CHEAP"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.priceVerdict }}",
+                    "rightValue": "EXPENSIVE",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "EXPENSIVE"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ece9a9ad-fa6f-40d9-83d2-b5d3a9eb2dd3",
+      "name": "Route by PriceVerdict",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -416,
+        252
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "ab1769fa-d8c6-4df7-9e4d-2fddbe74345b",
+      "name": "Merge FAIR and CHEAP",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        -192,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a Marketing Content Reviewer. Review and enhance the product name and description based on the following data:\n\nSuggested Name: {{ $json.suggestedName }}\nSuggested Description: {{ $json.suggestedDesc }}\nSuggested Retail Price: {{ $json.suggestedRetailPrice }}\nPrice Verdict: {{ $json.priceVerdict }}\n\nProvide enhanced marketing content that is compelling, accurate, and optimized for WooCommerce. Return your response as a structured JSON object.",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "id": "a1111111-1111-1111-1111-111111111111",
+      "name": "AI Agent 1 - Marketing Content",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        32,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "a1111111-1111-1111-1111-111111111112",
+      "name": "Gemini Model 1",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        40,
+        368
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "vyE1k8wAmLTyP2Z7",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"enhancedName\": {\n      \"type\": \"string\"\n    },\n    \"enhancedDescription\": {\n      \"type\": \"string\"\n    },\n    \"marketingScore\": {\n      \"type\": \"number\"\n    },\n    \"improvements\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      }\n    }\n  }\n}"
+      },
+      "id": "a1111111-1111-1111-1111-111111111113",
+      "name": "Output Parser 1",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        176,
+        368
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse Agent 1 (Marketing Content Reviewer) response\nconst item = $input.first();\nconst originalData = $('Merge FAIR and CHEAP').first().json;\n\n// With structured output parser, the output is already parsed in item.json.output\nconst agentResponse = item.json.output || {\n  enhancedName: originalData.suggestedName,\n  enhancedDescription: originalData.suggestedDesc,\n  marketingScore: 5,\n  improvements: ['Using original content']\n};\n\nreturn [{\n  json: {\n    ...originalData,\n    agent1: {\n      enhancedName: agentResponse.enhancedName,\n      enhancedDescription: agentResponse.enhancedDescription,\n      marketingScore: agentResponse.marketingScore,\n      improvements: agentResponse.improvements\n    }\n  }\n}];"
+      },
+      "id": "ed6823d2-9099-4907-9d05-e157b3f797e0",
+      "name": "Parse Agent 1 Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        384,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a Pricing Strategy Validator. Review the pricing strategy using the following data:\n\nProduct ID: {{ $json.productId }}\nEnhanced Name: {{ $json.agent1.enhancedName }}\nEnhanced Description: {{ $json.agent1.enhancedDescription }}\nMarketing Score: {{ $json.agent1.marketingScore }}\nSuggested Retail Price: {{ $json.suggestedRetailPrice }}\nPrice Verdict: {{ $json.priceVerdict }}\n\nValidate the pricing strategy and provide pricing recommendations. Return your response as a structured JSON object.",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "id": "a2222222-2222-2222-2222-222222222221",
+      "name": "AI Agent 2 - Pricing Strategy",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        608,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "a2222222-2222-2222-2222-222222222222",
+      "name": "Gemini Model 2",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        616,
+        368
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "vyE1k8wAmLTyP2Z7",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"finalPrice\": {\n      \"type\": \"number\"\n    },\n    \"originalPrice\": {\n      \"type\": \"number\"\n    },\n    \"pricingStrategy\": {\n      \"type\": \"string\"\n    },\n    \"justification\": {\n      \"type\": \"string\"\n    },\n    \"pricingScore\": {\n      \"type\": \"number\"\n    }\n  }\n}"
+      },
+      "id": "a2222222-2222-2222-2222-222222222223",
+      "name": "Output Parser 2",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        744,
+        368
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse Agent 2 (Pricing Strategy Validator) response\nconst item = $input.first();\nconst previousData = $('Parse Agent 1 Response').first().json;\n\n// With structured output parser, the output is already parsed in item.json.output\nconst agentResponse = item.json.output || {\n  finalPrice: previousData.suggestedRetailPrice,\n  originalPrice: previousData.suggestedRetailPrice,\n  pricingStrategy: 'Using suggested price',\n  justification: 'Default pricing',\n  pricingScore: 5\n};\n\nreturn [{\n  json: {\n    ...previousData,\n    agent2: {\n      finalPrice: agentResponse.finalPrice,\n      originalPrice: agentResponse.originalPrice,\n      pricingStrategy: agentResponse.pricingStrategy,\n      justification: agentResponse.justification,\n      pricingScore: agentResponse.pricingScore\n    }\n  }\n}];"
+      },
+      "id": "ba54f543-2b3a-4ec5-a31d-143c4119a967",
+      "name": "Parse Agent 2 Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are the Final QA Reviewer. Perform a comprehensive quality check on all content and pricing:\n\nProduct ID: {{ $json.productId }}\nEnhanced Name: {{ $json.agent1.enhancedName }}\nEnhanced Description: {{ $json.agent1.enhancedDescription }}\nMarketing Score: {{ $json.agent1.marketingScore }}\nFinal Price: {{ $json.agent2.finalPrice }}\nPricing Strategy: {{ $json.agent2.pricingStrategy }}\nPricing Score: {{ $json.agent2.pricingScore }}\n\nPerform final quality assurance and approve or reject the product updates. Return your response as a structured JSON object.",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "id": "a3333333-3333-3333-3333-333333333331",
+      "name": "AI Agent 3 - Final QA",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1184,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "a3333333-3333-3333-3333-333333333332",
+      "name": "Gemini Model 3",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1192,
+        368
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "vyE1k8wAmLTyP2Z7",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"approvedName\": {\n      \"type\": \"string\"\n    },\n    \"approvedDescription\": {\n      \"type\": \"string\"\n    },\n    \"approvedPrice\": {\n      \"type\": \"number\"\n    },\n    \"overallScore\": {\n      \"type\": \"number\"\n    },\n    \"qualityNotes\": {\n      \"type\": \"string\"\n    },\n    \"isApproved\": {\n      \"type\": \"boolean\"\n    }\n  }\n}"
+      },
+      "id": "a3333333-3333-3333-3333-333333333333",
+      "name": "Output Parser 3",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1320,
+        368
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse Agent 3 (Final QA) response\nconst item = $input.first();\nconst previousData = $('Parse Agent 2 Response').first().json;\n\nconst agentResponse = item.json.output || {\n  approvedName: previousData.agent1.enhancedName,\n  approvedDescription: previousData.agent1.enhancedDescription,\n  approvedPrice: previousData.agent2.finalPrice,\n  overallScore: 7,\n  qualityNotes: 'Using previous agent outputs',\n  isApproved: true\n};\n\n// Determine which fields will be updated\nconst updatedFields = ['name', 'description', 'status'];\nconst finalPrice = previousData.isProfitable ? agentResponse.approvedPrice : null;\nif (finalPrice !== null) {\n  updatedFields.push('regular_price');\n}\n\nreturn [{\n  json: {\n    productId: previousData.productId,\n    productName: previousData.productName,\n    priceVerdict: previousData.priceVerdict,\n    costPrice: previousData.costPrice,\n    marginPercent: previousData.marginPercent,\n    isProfitable: previousData.isProfitable,\n    original: {\n      name: previousData.suggestedName,\n      description: previousData.suggestedDesc,\n      price: previousData.suggestedRetailPrice\n    },\n    final: {\n      name: agentResponse.approvedName,\n      description: agentResponse.approvedDescription,\n      price: agentResponse.approvedPrice,\n      overallScore: agentResponse.overallScore,\n      qualityNotes: agentResponse.qualityNotes,\n      isApproved: agentResponse.isApproved\n    },\n    updatedFields: updatedFields,\n    agentScores: {\n      marketing: previousData.agent1.marketingScore,\n      pricing: previousData.agent2.pricingScore,\n      overall: agentResponse.overallScore\n    }\n  }\n}];"
+      },
+      "id": "94da5a86-3676-4020-aba5-32237ac29490",
+      "name": "Parse Final Agent Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1536,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "product",
+        "operation": "update",
+        "productId": "={{ $json.productId }}",
+        "updateFields": {
+          "description": "={{ $json.final.description }}",
+          "name": "={{ $json.final.name }}",
+          "status": "publish",
+          "regularPrice": "={{ $json.isProfitable ? String($json.final.price) : '' }}"
+        },
+        "dimensionsUi": {},
+        "imagesUi": {},
+        "metadataUi": {}
+      },
+      "id": "41951030-653d-46d3-adfd-78cfbc1f5482",
+      "name": "Update Product - Active",
+      "type": "n8n-nodes-base.wooCommerce",
+      "typeVersion": 1,
+      "position": [
+        1760,
+        144
+      ],
+      "credentials": {
+        "wooCommerceApi": {
+          "id": "uGpC30yt9WNfKtA1",
+          "name": "WooCommerce account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prepare EXPENSIVE products for draft status\nconst item = $input.first();\n\nreturn [{\n  json: {\n    productId: item.json.productId,\n    productName: item.json.productName,\n    priceVerdict: item.json.priceVerdict,\n    costPrice: item.json.costPrice,\n    marginPercent: item.json.marginPercent,\n    isProfitable: false,\n    original: {\n      name: item.json.suggestedName,\n      description: item.json.suggestedDesc,\n      price: item.json.suggestedRetailPrice\n    },\n    final: {\n      name: item.json.suggestedName,\n      description: item.json.suggestedDesc,\n      price: item.json.suggestedRetailPrice,\n      overallScore: 0,\n      qualityNotes: 'Set to draft - price evaluated as EXPENSIVE',\n      isApproved: false\n    },\n    updatedFields: ['status'],\n    agentScores: {\n      marketing: 0,\n      pricing: 0,\n      overall: 0\n    },\n    action: 'set_draft'\n  }\n}];"
+      },
+      "id": "c3b2c0e6-d1fd-48c6-9011-598fde7a66d8",
+      "name": "Prepare Draft Status",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1536,
+        392
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "product",
+        "operation": "update",
+        "productId": "={{ $json.productId }}",
+        "updateFields": {
+          "status": "draft"
+        },
+        "dimensionsUi": {},
+        "imagesUi": {},
+        "metadataUi": {}
+      },
+      "id": "4b23898c-8da1-41ac-9ec3-a80de65d6aba",
+      "name": "Update Product - Draft",
+      "type": "n8n-nodes-base.wooCommerce",
+      "typeVersion": 1,
+      "position": [
+        1760,
+        392
+      ],
+      "credentials": {
+        "wooCommerceApi": {
+          "id": "uGpC30yt9WNfKtA1",
+          "name": "WooCommerce account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prepare data matching actual ProcessedProducts sheet columns\nconst items = $input.all();\nconst results = [];\n\nfor (const item of items) {\n  const data = item.json;\n  \n  let updateStatus = 'success';\n  let errorMessage = '';\n  \n  if (data.error) {\n    updateStatus = 'error';\n    errorMessage = data.error.message || 'Unknown error';\n  }\n  \n  // Build updated fields summary\n  const updatedFieldsList = (data.updatedFields || []).join(', ');\n  const priceInfo = data.isProfitable \n    ? 'Cost: $' + (data.costPrice || 0) + ' | Retail: $' + (data.final?.price || 0) + ' | Margin: ' + (data.marginPercent || 0) + '%'\n    : 'Cost: $' + (data.costPrice || 0) + ' | Not profitable (margin: ' + (data.marginPercent || 0) + '%) - price not updated';\n  \n  results.push({\n    json: {\n      ProductID: data.productId || data.id || '',\n      ProductName: data.final?.name || data.productName || data.name || '',\n      ProcessedAt: new Date().toISOString(),\n      Headline: data.priceVerdict + ' - ' + (data.status || (data.action === 'set_draft' ? 'draft' : 'publish')),\n      Description: priceInfo,\n      SocialPost: 'Score: ' + (data.final?.overallScore || data.agentScores?.overall || 0) + '/10',\n      VideoScript: 'Updated: ' + updatedFieldsList,\n      ImagePrompt: updateStatus,\n      ProductURL: errorMessage,\n      DateTimeCreated: new Date().toISOString()\n    }\n  });\n}\n\nreturn results;"
+      },
+      "id": "7153492d-4856-48e3-838b-c433d1aa7ce5",
+      "name": "Handle Update Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2208,
+        268
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "3dd63432-b650-4f81-83bc-1c8642f555fc",
+      "name": "Merge All Results",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        1984,
+        268
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1k6dLR39LQqj7igNv5LhF34jm26zfXBx3XpwC_Ld0yVw",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "ProcessedProducts",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapByName",
+          "value": {},
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "4ef1d4c7-2dbd-427b-8435-51b2b69cd43f",
+      "name": "Log to ProcessedProducts",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        2432,
+        268
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "QrdVcRSV8DgAcNck",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1k6dLR39LQqj7igNv5LhF34jm26zfXBx3XpwC_Ld0yVw",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "ProductReference",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "a0b1c2d3-e4f5-6789-abcd-ef0123456789",
+      "name": "Read ProductReference",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -560,
+        268
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "QrdVcRSV8DgAcNck",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 3,
+        "unit": "seconds"
+      },
+      "id": "w41t-n0de-0001-0000-000000000001",
+      "name": "Wait 3s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -752,
+        268
+      ],
+      "webhookId": "wait-3s-sheets-ratelimit"
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Read ProductEvaluations",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Read ProductEvaluations",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read ProductEvaluations": {
+      "main": [
+        [
+          {
+            "node": "Wait 3s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Product Data": {
+      "main": [
+        [
+          {
+            "node": "Route by PriceVerdict",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by PriceVerdict": {
+      "main": [
+        [
+          {
+            "node": "Merge FAIR and CHEAP",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge FAIR and CHEAP",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "Prepare Draft Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge FAIR and CHEAP": {
+      "main": [
+        [
+          {
+            "node": "AI Agent 1 - Marketing Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent 1 - Marketing Content": {
+      "main": [
+        [
+          {
+            "node": "Parse Agent 1 Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Model 1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent 1 - Marketing Content",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Output Parser 1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent 1 - Marketing Content",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Agent 1 Response": {
+      "main": [
+        [
+          {
+            "node": "AI Agent 2 - Pricing Strategy",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent 2 - Pricing Strategy": {
+      "main": [
+        [
+          {
+            "node": "Parse Agent 2 Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Model 2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent 2 - Pricing Strategy",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Output Parser 2": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent 2 - Pricing Strategy",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Agent 2 Response": {
+      "main": [
+        [
+          {
+            "node": "AI Agent 3 - Final QA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent 3 - Final QA": {
+      "main": [
+        [
+          {
+            "node": "Parse Final Agent Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Model 3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent 3 - Final QA",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Output Parser 3": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent 3 - Final QA",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Final Agent Response": {
+      "main": [
+        [
+          {
+            "node": "Update Product - Active",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Product - Active": {
+      "main": [
+        [
+          {
+            "node": "Merge All Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Draft Status": {
+      "main": [
+        [
+          {
+            "node": "Update Product - Draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Product - Draft": {
+      "main": [
+        [
+          {
+            "node": "Merge All Results",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge All Results": {
+      "main": [
+        [
+          {
+            "node": "Handle Update Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handle Update Results": {
+      "main": [
+        [
+          {
+            "node": "Log to ProcessedProducts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read ProductReference": {
+      "main": [
+        [
+          {
+            "node": "Prepare Product Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 3s": {
+      "main": [
+        [
+          {
+            "node": "Read ProductReference",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "fa7c89a5-3ac3-4263-97a4-74e97b790551",
+  "activeVersionId": null,
+  "versionCounter": 7,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-02-02T22:39:48.118Z",
+      "createdAt": "2026-02-02T22:39:48.118Z",
+      "role": "workflow:owner",
+      "workflowId": "PPSrDTxvHnGpqnESHXkxt",
+      "projectId": "OZpEMZrnioWDCJsC",
+      "project": {
+        "updatedAt": "2026-01-19T07:38:19.868Z",
+        "createdAt": "2026-01-19T07:37:57.912Z",
+        "id": "OZpEMZrnioWDCJsC",
+        "name": "Lemuel Francisco <freelance.lemuelrfrancisco@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "38f71c9d-2cc5-453b-8284-e3d5eb508e7c",
+        "projectRelations": [
+          {
+            "updatedAt": "2026-01-19T07:37:57.912Z",
+            "createdAt": "2026-01-19T07:37:57.912Z",
+            "userId": "38f71c9d-2cc5-453b-8284-e3d5eb508e7c",
+            "projectId": "OZpEMZrnioWDCJsC",
+            "user": {
+              "updatedAt": "2026-02-04T01:02:15.000Z",
+              "createdAt": "2026-01-19T07:37:57.337Z",
+              "id": "38f71c9d-2cc5-453b-8284-e3d5eb508e7c",
+              "email": "freelance.lemuelrfrancisco@gmail.com",
+              "firstName": "Lemuel",
+              "lastName": "Francisco",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2026-01-19T07:38:36.482Z",
+                "personalization_survey_n8n_version": "2.2.4",
+                "companyType": "personal",
+                "reportedSource": "youtube"
+              },
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "VtHe_WtifdGUhlOw9NMlt",
+                "userActivatedAt": 1768896964872,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1769644632310
+                }
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-02-03",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": null
+}

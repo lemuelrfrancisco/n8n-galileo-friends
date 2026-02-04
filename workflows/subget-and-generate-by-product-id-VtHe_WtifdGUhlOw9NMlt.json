@@ -1,0 +1,793 @@
+{
+  "updatedAt": "2026-01-20T13:00:30.641Z",
+  "createdAt": "2026-01-20T07:55:15.724Z",
+  "id": "VtHe_WtifdGUhlOw9NMlt",
+  "name": "SUB:Get and Generate by Product ID",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.prompt }}",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        240,
+        -64
+      ],
+      "id": "28f59931-00dc-403e-9c9d-f98e9fcbc008",
+      "name": "AI Agent",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        248,
+        160
+      ],
+      "id": "2f2d4c68-83a0-43db-b28a-c4a33fbf7c4c",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "vyE1k8wAmLTyP2Z7",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n\t\"type\": \"object\",\n\t\"properties\": {\n      \"post\":{\n        \"type\":\"string\"\n      },\n      \"imagePrompt\":{\n        \"type\":\"string\"\n      }\n\t}\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        376,
+        160
+      ],
+      "id": "4aaa0704-609a-49cd-8ed9-d209e21885f5",
+      "name": "Structured Output Parser",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0afa407b-e7e2-465b-bde2-b7273a09e92e",
+              "name": "prompt",
+              "value": "=I want to make a digital marketing post in social for my Online toy store product,{{ $json.name }} - {{ $json.permalink }}. generate an amazing and engaging post description for the website product page. return the result as description and prompt for the image of the product",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        16,
+        -64
+      ],
+      "id": "25c09cc4-7316-41e8-8e15-74d494fee7c5",
+      "name": "Prompt Command"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.0-flash-exp-image-generation",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.0-flash-exp-image-generation"
+        },
+        "prompt": "={{ $json.output.imagePrompt }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        592,
+        -64
+      ],
+      "id": "aa0d2ac5-6ddb-418e-9670-9d6fbfed8cbe",
+      "name": "Generate an image",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "vyE1k8wAmLTyP2Z7",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ $('AI Agent').item.json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        816,
+        128
+      ],
+      "id": "07db01f8-8eeb-443b-b6cb-e7e8bac18bf4",
+      "name": "Result1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "31f5a88e-068e-44ae-ae28-db2c6215dbf0",
+              "name": "post",
+              "value": "={{ $('AI Agent').item.json.output.post }}",
+              "type": "string"
+            },
+            {
+              "id": "05afa3f7-c9fd-471b-a7ea-36fa276c9958",
+              "name": "image",
+              "value": "={{ $('Generate an image').item.binary.data }}",
+              "type": "binary"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        816,
+        -64
+      ],
+      "id": "7121c5eb-e4ee-4c4f-bf47-7f42dd9313dc",
+      "name": "Result",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "productId"
+            },
+            {
+              "name": "chatId",
+              "type": "number"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -656,
+        -64
+      ],
+      "id": "62145491-507c-4ea5-9499-2f3c12a2d266",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "productId": "={{ $('When Executed by Another Workflow').item.json.productId }}"
+      },
+      "type": "n8n-nodes-base.wooCommerce",
+      "typeVersion": 1,
+      "position": [
+        -208,
+        -64
+      ],
+      "id": "2e754fe9-a3be-4959-81f2-de9ac7166d95",
+      "name": "Get Product by ID",
+      "credentials": {
+        "wooCommerceApi": {
+          "id": "uGpC30yt9WNfKtA1",
+          "name": "WooCommerce account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendPhoto",
+        "chatId": "={{ $('When Executed by Another Workflow').item.json.chatId }}",
+        "binaryData": true,
+        "binaryPropertyName": "=data",
+        "additionalFields": {
+          "caption": "={{ $('AI Agent').item.json.output.post }}"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        816,
+        -256
+      ],
+      "id": "da5917ff-73e2-445c-8680-0ba3750ffe8d",
+      "name": "Send a photo message",
+      "webhookId": "9dbe43c1-e3c9-427b-b587-4ff34c68b16c",
+      "credentials": {
+        "telegramApi": {
+          "id": "VVVfsF0zp9hQn8N8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('When Executed by Another Workflow').item.json.chatId }}",
+        "text": "Generating your request. Please wait\u2026",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -432,
+        -64
+      ],
+      "id": "c67bd1ff-0495-45a0-82ff-b24332180460",
+      "name": "Send a text message",
+      "webhookId": "50ea4580-a550-432f-ac0f-a0771f42ad7c",
+      "credentials": {
+        "telegramApi": {
+          "id": "VVVfsF0zp9hQn8N8",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Generate an image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prompt Command": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate an image": {
+      "main": [
+        [
+          {
+            "node": "Result1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Result",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send a photo message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Result": {
+      "main": [
+        []
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Product by ID": {
+      "main": [
+        [
+          {
+            "node": "Prompt Command",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        [
+          {
+            "node": "Get Product by ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "a8e24f3d-0602-477a-92b0-4f5b323385d1",
+  "activeVersionId": "a8e24f3d-0602-477a-92b0-4f5b323385d1",
+  "versionCounter": 52,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-01-20T07:55:15.728Z",
+      "createdAt": "2026-01-20T07:55:15.728Z",
+      "role": "workflow:owner",
+      "workflowId": "VtHe_WtifdGUhlOw9NMlt",
+      "projectId": "OZpEMZrnioWDCJsC",
+      "project": {
+        "updatedAt": "2026-01-19T07:38:19.868Z",
+        "createdAt": "2026-01-19T07:37:57.912Z",
+        "id": "OZpEMZrnioWDCJsC",
+        "name": "Lemuel Francisco <freelance.lemuelrfrancisco@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "38f71c9d-2cc5-453b-8284-e3d5eb508e7c",
+        "projectRelations": [
+          {
+            "updatedAt": "2026-01-19T07:37:57.912Z",
+            "createdAt": "2026-01-19T07:37:57.912Z",
+            "userId": "38f71c9d-2cc5-453b-8284-e3d5eb508e7c",
+            "projectId": "OZpEMZrnioWDCJsC",
+            "user": {
+              "updatedAt": "2026-02-04T01:02:15.000Z",
+              "createdAt": "2026-01-19T07:37:57.337Z",
+              "id": "38f71c9d-2cc5-453b-8284-e3d5eb508e7c",
+              "email": "freelance.lemuelrfrancisco@gmail.com",
+              "firstName": "Lemuel",
+              "lastName": "Francisco",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2026-01-19T07:38:36.482Z",
+                "personalization_survey_n8n_version": "2.2.4",
+                "companyType": "personal",
+                "reportedSource": "youtube"
+              },
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "VtHe_WtifdGUhlOw9NMlt",
+                "userActivatedAt": 1768896964872,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1769644632310
+                }
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-02-03",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-01-20T13:00:40.000Z",
+    "createdAt": "2026-01-20T13:00:30.642Z",
+    "versionId": "a8e24f3d-0602-477a-92b0-4f5b323385d1",
+    "workflowId": "VtHe_WtifdGUhlOw9NMlt",
+    "nodes": [
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "={{ $json.prompt }}",
+          "hasOutputParser": true,
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "typeVersion": 3.1,
+        "position": [
+          240,
+          -64
+        ],
+        "id": "28f59931-00dc-403e-9c9d-f98e9fcbc008",
+        "name": "AI Agent",
+        "alwaysOutputData": false
+      },
+      {
+        "parameters": {
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+        "typeVersion": 1,
+        "position": [
+          248,
+          160
+        ],
+        "id": "2f2d4c68-83a0-43db-b28a-c4a33fbf7c4c",
+        "name": "Google Gemini Chat Model",
+        "credentials": {
+          "googlePalmApi": {
+            "id": "vyE1k8wAmLTyP2Z7",
+            "name": "Google Gemini(PaLM) Api account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "schemaType": "manual",
+          "inputSchema": "{\n\t\"type\": \"object\",\n\t\"properties\": {\n      \"post\":{\n        \"type\":\"string\"\n      },\n      \"imagePrompt\":{\n        \"type\":\"string\"\n      }\n\t}\n}"
+        },
+        "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+        "typeVersion": 1.3,
+        "position": [
+          376,
+          160
+        ],
+        "id": "4aaa0704-609a-49cd-8ed9-d209e21885f5",
+        "name": "Structured Output Parser",
+        "alwaysOutputData": true
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "0afa407b-e7e2-465b-bde2-b7273a09e92e",
+                "name": "prompt",
+                "value": "=I want to make a digital marketing post in social for my Online toy store product,{{ $json.name }} - {{ $json.permalink }}. generate an amazing and engaging post description for the website product page. return the result as description and prompt for the image of the product",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          16,
+          -64
+        ],
+        "id": "25c09cc4-7316-41e8-8e15-74d494fee7c5",
+        "name": "Prompt Command"
+      },
+      {
+        "parameters": {
+          "resource": "image",
+          "modelId": {
+            "__rl": true,
+            "value": "models/gemini-2.0-flash-exp-image-generation",
+            "mode": "list",
+            "cachedResultName": "models/gemini-2.0-flash-exp-image-generation"
+          },
+          "prompt": "={{ $json.output.imagePrompt }}",
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.googleGemini",
+        "typeVersion": 1.1,
+        "position": [
+          592,
+          -64
+        ],
+        "id": "aa0d2ac5-6ddb-418e-9670-9d6fbfed8cbe",
+        "name": "Generate an image",
+        "credentials": {
+          "googlePalmApi": {
+            "id": "vyE1k8wAmLTyP2Z7",
+            "name": "Google Gemini(PaLM) Api account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "mode": "raw",
+          "jsonOutput": "={{ $('AI Agent').item.json.output }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          816,
+          128
+        ],
+        "id": "07db01f8-8eeb-443b-b6cb-e7e8bac18bf4",
+        "name": "Result1",
+        "disabled": true
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "31f5a88e-068e-44ae-ae28-db2c6215dbf0",
+                "name": "post",
+                "value": "={{ $('AI Agent').item.json.output.post }}",
+                "type": "string"
+              },
+              {
+                "id": "05afa3f7-c9fd-471b-a7ea-36fa276c9958",
+                "name": "image",
+                "value": "={{ $('Generate an image').item.binary.data }}",
+                "type": "binary"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          816,
+          -64
+        ],
+        "id": "7121c5eb-e4ee-4c4f-bf47-7f42dd9313dc",
+        "name": "Result",
+        "alwaysOutputData": true
+      },
+      {
+        "parameters": {
+          "workflowInputs": {
+            "values": [
+              {
+                "name": "productId"
+              },
+              {
+                "name": "chatId",
+                "type": "number"
+              }
+            ]
+          }
+        },
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          -656,
+          -64
+        ],
+        "id": "62145491-507c-4ea5-9499-2f3c12a2d266",
+        "name": "When Executed by Another Workflow"
+      },
+      {
+        "parameters": {
+          "operation": "get",
+          "productId": "={{ $('When Executed by Another Workflow').item.json.productId }}"
+        },
+        "type": "n8n-nodes-base.wooCommerce",
+        "typeVersion": 1,
+        "position": [
+          -208,
+          -64
+        ],
+        "id": "2e754fe9-a3be-4959-81f2-de9ac7166d95",
+        "name": "Get Product by ID",
+        "credentials": {
+          "wooCommerceApi": {
+            "id": "uGpC30yt9WNfKtA1",
+            "name": "WooCommerce account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "sendPhoto",
+          "chatId": "={{ $('When Executed by Another Workflow').item.json.chatId }}",
+          "binaryData": true,
+          "binaryPropertyName": "=data",
+          "additionalFields": {
+            "caption": "={{ $('AI Agent').item.json.output.post }}"
+          }
+        },
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          816,
+          -256
+        ],
+        "id": "da5917ff-73e2-445c-8680-0ba3750ffe8d",
+        "name": "Send a photo message",
+        "webhookId": "9dbe43c1-e3c9-427b-b587-4ff34c68b16c",
+        "credentials": {
+          "telegramApi": {
+            "id": "VVVfsF0zp9hQn8N8",
+            "name": "Telegram account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "chatId": "={{ $('When Executed by Another Workflow').item.json.chatId }}",
+          "text": "Generating your request. Please wait\u2026",
+          "additionalFields": {
+            "appendAttribution": false
+          }
+        },
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          -432,
+          -64
+        ],
+        "id": "c67bd1ff-0495-45a0-82ff-b24332180460",
+        "name": "Send a text message",
+        "webhookId": "50ea4580-a550-432f-ac0f-a0771f42ad7c",
+        "credentials": {
+          "telegramApi": {
+            "id": "VVVfsF0zp9hQn8N8",
+            "name": "Telegram account"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "AI Agent": {
+        "main": [
+          [
+            {
+              "node": "Generate an image",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Google Gemini Chat Model": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Structured Output Parser": {
+        "ai_outputParser": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_outputParser",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Prompt Command": {
+        "main": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Generate an image": {
+        "main": [
+          [
+            {
+              "node": "Result1",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Result",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Send a photo message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Result": {
+        "main": [
+          []
+        ]
+      },
+      "When Executed by Another Workflow": {
+        "main": [
+          [
+            {
+              "node": "Send a text message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Product by ID": {
+        "main": [
+          [
+            {
+              "node": "Prompt Command",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Send a text message": {
+        "main": [
+          [
+            {
+              "node": "Get Product by ID",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Lemuel Francisco",
+    "name": "Version a8e24f3d",
+    "description": "",
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-01-20T13:00:40.296Z",
+        "id": 29,
+        "workflowId": "VtHe_WtifdGUhlOw9NMlt",
+        "versionId": "a8e24f3d-0602-477a-92b0-4f5b323385d1",
+        "event": "activated",
+        "userId": "38f71c9d-2cc5-453b-8284-e3d5eb508e7c"
+      }
+    ]
+  }
+}

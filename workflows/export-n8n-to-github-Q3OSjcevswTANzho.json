@@ -1,0 +1,636 @@
+{
+  "updatedAt": "2026-02-04T03:39:34.263Z",
+  "createdAt": "2026-02-04T02:42:36.799Z",
+  "id": "Q3OSjcevswTANzho",
+  "name": "Export n8n to GitHub",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        300
+      ],
+      "id": "trigger-001",
+      "name": "Manual Trigger"
+    },
+    {
+      "parameters": {
+        "options": {},
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cfg-01",
+              "name": "githubOwner",
+              "value": "lemuelrfrancisco",
+              "type": "string"
+            },
+            {
+              "id": "cfg-02",
+              "name": "githubRepo",
+              "value": "n8n-galileo-friends",
+              "type": "string"
+            },
+            {
+              "id": "cfg-03",
+              "name": "githubBranch",
+              "value": "main",
+              "type": "string"
+            },
+            {
+              "id": "cfg-04",
+              "name": "githubPat",
+              "value": "REDACTED_GITHUB_PAT",
+              "type": "string"
+            },
+            {
+              "id": "cfg-05",
+              "name": "n8nApiUrl",
+              "value": "https://dense-ricki-untyrantlike.ngrok-free.dev",
+              "type": "string"
+            },
+            {
+              "id": "cfg-06",
+              "name": "n8nApiKey",
+              "value": "REDACTED_JWT",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        300
+      ],
+      "id": "set-config-002",
+      "name": "Set Config"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json.n8nApiUrl }}/api/v1/workflows",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-N8N-API-KEY",
+              "value": "={{ $json.n8nApiKey }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        480,
+        200
+      ],
+      "id": "fetch-workflows-003",
+      "name": "Fetch All Workflows"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json.n8nApiUrl }}/api/v1/credentials",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-N8N-API-KEY",
+              "value": "={{ $json.n8nApiKey }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        480,
+        440
+      ],
+      "id": "fetch-creds-004",
+      "name": "Fetch Credentials",
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const workflows = $input.first().json.data;\nif (!workflows || workflows.length === 0) {\n  throw new Error('No workflows found in n8n instance');\n}\n\nconst config = $('Set Config').first().json;\n\nreturn workflows.map(wf => ({\n  json: {\n    workflowId: wf.id,\n    workflowName: wf.name,\n    n8nApiUrl: config.n8nApiUrl,\n    n8nApiKey: config.n8nApiKey\n  }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        200
+      ],
+      "id": "split-workflows-005",
+      "name": "Split Out Workflows"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json.n8nApiUrl }}/api/v1/workflows/{{ $json.workflowId }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-N8N-API-KEY",
+              "value": "={{ $json.n8nApiKey }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        960,
+        200
+      ],
+      "id": "fetch-full-wf-006",
+      "name": "Fetch Full Workflow"
+    },
+    {
+      "parameters": {
+        "mode": "append",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        1200,
+        300
+      ],
+      "id": "merge-007",
+      "name": "Merge All Data"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Gather all input items\nconst items = $input.all();\n\n// Get config\nconst config = $('Set Config').first().json;\n\n// Get all workflow items from Fetch Full Workflow\nconst workflowItems = $('Fetch Full Workflow').all();\n\n// Get credentials data (may be empty if the API call failed)\nlet credentialsData = [];\ntry {\n  const credResult = $('Fetch Credentials').first().json;\n  if (credResult && credResult.data) {\n    credentialsData = credResult.data;\n  }\n} catch (e) {\n  // Credentials fetch failed, continue with empty\n}\n\n// Build tree entries for workflows\nconst treeEntries = [];\n\nfor (const item of workflowItems) {\n  const wf = item.json;\n  \n  // Sanitize workflow name for filename\n  const sanitized = (wf.name || 'unnamed')\n    .toLowerCase()\n    .replace(/[^a-z0-9\\-_ ]/g, '')\n    .replace(/\\s+/g, '-')\n    .replace(/-+/g, '-')\n    .replace(/^-|-$/g, '')\n    .substring(0, 80);\n  \n  const filename = `workflows/${sanitized}-${wf.id}.json`;\n  \n  // Remove sensitive/ephemeral fields\n  const cleanWf = { ...wf };\n  delete cleanWf.n8nApiUrl;\n  delete cleanWf.n8nApiKey;\n  \n  treeEntries.push({\n    path: filename,\n    mode: '100644',\n    type: 'blob',\n    content: JSON.stringify(cleanWf, null, 2)\n  });\n}\n\n// Build credentials manifest\nconst manifest = {\n  exportedAt: new Date().toISOString(),\n  count: credentialsData.length,\n  note: 'Metadata only - no secrets included',\n  credentials: credentialsData.map(c => ({\n    id: c.id,\n    name: c.name,\n    type: c.type,\n    createdAt: c.createdAt,\n    updatedAt: c.updatedAt\n  }))\n};\n\ntreeEntries.push({\n  path: 'credentials/credentials-manifest.json',\n  mode: '100644',\n  type: 'blob',\n  content: JSON.stringify(manifest, null, 2)\n});\n\nreturn [{\n  json: {\n    treeEntries,\n    workflowCount: workflowItems.length,\n    credentialCount: credentialsData.length,\n    githubOwner: config.githubOwner,\n    githubRepo: config.githubRepo,\n    githubBranch: config.githubBranch,\n    githubPat: config.githubPat\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1440,
+        300
+      ],
+      "id": "build-tree-008",
+      "name": "Build Tree Entries"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.github.com/repos/{{ $json.githubOwner }}/{{ $json.githubRepo }}/git/refs/heads/{{ $json.githubBranch }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.githubPat }}"
+            },
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1680,
+        300
+      ],
+      "id": "gh-get-ref-009",
+      "name": "GH: Get Branch Ref"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.github.com/repos/{{ $('Build Tree Entries').item.json.githubOwner }}/{{ $('Build Tree Entries').item.json.githubRepo }}/git/commits/{{ $json.object.sha }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('Build Tree Entries').item.json.githubPat }}"
+            },
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1920,
+        300
+      ],
+      "id": "gh-get-commit-010",
+      "name": "GH: Get Current Commit"
+    },
+    {
+      "parameters": {
+        "jsCode": "const buildData = $('Build Tree Entries').first().json;\nconst currentCommit = $input.first().json;\n\nconst baseTreeSha = currentCommit.tree.sha;\nconst parentCommitSha = currentCommit.sha;\n\nreturn [{\n  json: {\n    treeRequestBody: {\n      base_tree: baseTreeSha,\n      tree: buildData.treeEntries\n    },\n    parentCommitSha,\n    workflowCount: buildData.workflowCount,\n    credentialCount: buildData.credentialCount,\n    githubOwner: buildData.githubOwner,\n    githubRepo: buildData.githubRepo,\n    githubBranch: buildData.githubBranch,\n    githubPat: buildData.githubPat\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2160,
+        300
+      ],
+      "id": "prepare-tree-011",
+      "name": "Prepare Tree Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "const prep = $input.first().json;\n\ntry {\n  const response = await this.helpers.httpRequest({\n    method: 'POST',\n    url: `https://api.github.com/repos/${prep.githubOwner}/${prep.githubRepo}/git/trees`,\n    headers: {\n      'Authorization': `Bearer ${prep.githubPat}`,\n      'Accept': 'application/vnd.github+json',\n      'Content-Type': 'application/json'\n    },\n    body: JSON.stringify(prep.treeRequestBody)\n  });\n\n  const parsed = typeof response === 'string' ? JSON.parse(response) : response;\n  if (!parsed.sha) {\n    throw new Error('GitHub Create Tree failed: ' + JSON.stringify(parsed));\n  }\n  return [{ json: parsed }];\n} catch (err) {\n  const respData = err.response?.data || err.body || err.message;\n  const status = err.response?.status || err.statusCode || 'unknown';\n  throw new Error(`GitHub API ${status}: ${JSON.stringify(respData)}`);\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2400,
+        300
+      ],
+      "id": "gh-create-tree-012",
+      "name": "GH: Create Tree"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.github.com/repos/{{ $('Prepare Tree Request').item.json.githubOwner }}/{{ $('Prepare Tree Request').item.json.githubRepo }}/git/commits",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('Prepare Tree Request').item.json.githubPat }}"
+            },
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ message: 'n8n export: ' + $('Prepare Tree Request').item.json.workflowCount + ' workflows, ' + $('Prepare Tree Request').item.json.credentialCount + ' credentials \u2014 ' + new Date().toISOString(), tree: $json.sha, parents: [$('Prepare Tree Request').item.json.parentCommitSha] }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2640,
+        300
+      ],
+      "id": "gh-create-commit-013",
+      "name": "GH: Create Commit"
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://api.github.com/repos/{{ $('Prepare Tree Request').item.json.githubOwner }}/{{ $('Prepare Tree Request').item.json.githubRepo }}/git/refs/heads/{{ $('Prepare Tree Request').item.json.githubBranch }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('Prepare Tree Request').item.json.githubPat }}"
+            },
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ sha: $json.sha, force: false }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2880,
+        300
+      ],
+      "id": "gh-update-ref-014",
+      "name": "GH: Update Branch Ref"
+    },
+    {
+      "parameters": {
+        "jsCode": "const prepData = $('Prepare Tree Request').first().json;\nconst commitResult = $('GH: Create Commit').first().json;\nconst refResult = $input.first().json;\n\nconst commitUrl = `https://github.com/${prepData.githubOwner}/${prepData.githubRepo}/commit/${commitResult.sha}`;\n\nreturn [{\n  json: {\n    success: true,\n    message: `Successfully exported ${prepData.workflowCount} workflows and ${prepData.credentialCount} credential metadata to GitHub`,\n    commitSha: commitResult.sha,\n    commitUrl,\n    branch: prepData.githubBranch,\n    workflowCount: prepData.workflowCount,\n    credentialCount: prepData.credentialCount,\n    exportedAt: new Date().toISOString()\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3120,
+        300
+      ],
+      "id": "summary-015",
+      "name": "Export Summary"
+    },
+    {
+      "parameters": {
+        "content": "## Export n8n to GitHub\nThis workflow exports all n8n workflows and credential metadata to a GitHub repository in a single atomic commit using the Git Data API.",
+        "width": 400,
+        "height": 100
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        100
+      ],
+      "id": "sticky-01",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "### Path A: Workflows\nFetch list \u2192 Split IDs \u2192 Fetch each full workflow\n\n### Path B: Credentials\nFetch credential metadata (continueOnFail)",
+        "width": 300,
+        "height": 180
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        440,
+        540
+      ],
+      "id": "sticky-02",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "### Build & Merge\nCombine workflow data + credential metadata.\nSanitize filenames, create Git tree entries.",
+        "width": 300,
+        "height": 100
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1160,
+        460
+      ],
+      "id": "sticky-03",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "### GitHub Git Data API\n1. Get branch ref \u2192 commit SHA\n2. Get commit \u2192 base_tree SHA\n3. Create tree (all files)\n4. Create commit\n5. Update ref \u2192 done!",
+        "width": 300,
+        "height": 140
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1640,
+        460
+      ],
+      "id": "sticky-04",
+      "name": "Sticky Note3"
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Config": {
+      "main": [
+        [
+          {
+            "node": "Fetch All Workflows",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Credentials",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch All Workflows": {
+      "main": [
+        [
+          {
+            "node": "Split Out Workflows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out Workflows": {
+      "main": [
+        [
+          {
+            "node": "Fetch Full Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Full Workflow": {
+      "main": [
+        [
+          {
+            "node": "Merge All Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Credentials": {
+      "main": [
+        [
+          {
+            "node": "Merge All Data",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge All Data": {
+      "main": [
+        [
+          {
+            "node": "Build Tree Entries",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Tree Entries": {
+      "main": [
+        [
+          {
+            "node": "GH: Get Branch Ref",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GH: Get Branch Ref": {
+      "main": [
+        [
+          {
+            "node": "GH: Get Current Commit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GH: Get Current Commit": {
+      "main": [
+        [
+          {
+            "node": "Prepare Tree Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Tree Request": {
+      "main": [
+        [
+          {
+            "node": "GH: Create Tree",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GH: Create Tree": {
+      "main": [
+        [
+          {
+            "node": "GH: Create Commit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GH: Create Commit": {
+      "main": [
+        [
+          {
+            "node": "GH: Update Branch Ref",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GH: Update Branch Ref": {
+      "main": [
+        [
+          {
+            "node": "Export Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "18e13142-b977-4589-a64e-85d5a8efa6ab",
+  "activeVersionId": null,
+  "versionCounter": 5,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-02-04T02:42:36.803Z",
+      "createdAt": "2026-02-04T02:42:36.803Z",
+      "role": "workflow:owner",
+      "workflowId": "Q3OSjcevswTANzho",
+      "projectId": "OZpEMZrnioWDCJsC",
+      "project": {
+        "updatedAt": "2026-01-19T07:38:19.868Z",
+        "createdAt": "2026-01-19T07:37:57.912Z",
+        "id": "OZpEMZrnioWDCJsC",
+        "name": "Lemuel Francisco <freelance.lemuelrfrancisco@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "38f71c9d-2cc5-453b-8284-e3d5eb508e7c",
+        "projectRelations": [
+          {
+            "updatedAt": "2026-01-19T07:37:57.912Z",
+            "createdAt": "2026-01-19T07:37:57.912Z",
+            "userId": "38f71c9d-2cc5-453b-8284-e3d5eb508e7c",
+            "projectId": "OZpEMZrnioWDCJsC",
+            "user": {
+              "updatedAt": "2026-02-04T01:02:15.000Z",
+              "createdAt": "2026-01-19T07:37:57.337Z",
+              "id": "38f71c9d-2cc5-453b-8284-e3d5eb508e7c",
+              "email": "freelance.lemuelrfrancisco@gmail.com",
+              "firstName": "Lemuel",
+              "lastName": "Francisco",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2026-01-19T07:38:36.482Z",
+                "personalization_survey_n8n_version": "2.2.4",
+                "companyType": "personal",
+                "reportedSource": "youtube"
+              },
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "VtHe_WtifdGUhlOw9NMlt",
+                "userActivatedAt": 1768896964872,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1769644632310
+                }
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-02-03",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": null
+}

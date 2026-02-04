@@ -1,0 +1,844 @@
+{
+  "updatedAt": "2026-01-20T12:35:15.291Z",
+  "createdAt": "2026-01-19T09:30:49.921Z",
+  "id": "RdgX5i_4sbV4S8CzAoOQs",
+  "name": "Telegram Commands",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -224,
+        -456
+      ],
+      "id": "fe3f00a2-54ac-436a-8f1d-7e2947654bcf",
+      "name": "Telegram Trigger",
+      "webhookId": "22d40a30-7f6e-46e7-9cac-b4504dd0eff7",
+      "credentials": {
+        "telegramApi": {
+          "id": "VVVfsF0zp9hQn8N8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7f0ccaae-ca4d-4b16-adeb-4cfd3c67768b",
+              "name": "=command",
+              "value": "={{ $json.message.text.toLowerCase() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        -552
+      ],
+      "id": "9db62886-3090-401b-a1e6-511341969f5e",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "076bc37f-f1c1-4838-8b29-17b3cffc9957",
+              "leftValue": 8430120206,
+              "rightValue": "={{ $json.message.chat.id }}",
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        0,
+        -456
+      ],
+      "id": "f12454f2-152b-48ed-95a6-7888f5e3f24b",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "Invalid User/Command",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        224,
+        -360
+      ],
+      "id": "483dd69d-0708-4abc-bcbb-f264b78561b0",
+      "name": "Send a text message",
+      "webhookId": "6811640e-8504-4cab-b80e-cc9eaba062a3",
+      "credentials": {
+        "telegramApi": {
+          "id": "VVVfsF0zp9hQn8N8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.command }}",
+                    "rightValue": "list",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "e1f8dac4-e304-43d8-bdb7-8fb24078c062"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "List"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "d312ff96-48e5-479f-bb85-b3fbefe7d3ce",
+                    "leftValue": "={{ $json.command }}",
+                    "rightValue": "generate",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Generate"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "e37c4447-3b3a-4d71-9dd9-a35c030c16ea",
+                    "leftValue": "={{ $json.command }}",
+                    "rightValue": "=get",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Get Product"
+            }
+          ]
+        },
+        "options": {
+          "allMatchingOutputs": false
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        448,
+        -568
+      ],
+      "id": "79932fd8-e646-40bb-b0e3-047898537474",
+      "name": "Switch",
+      "alwaysOutputData": false,
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "jsCode": "const texts = $('Edit Fields').first().json.command.split(\" \");\nreturn {\"productId\": texts[1] ?? \"\", \"chatId\": $('Telegram Trigger').first().json.message.from.id};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        -552
+      ],
+      "id": "86c65566-c43c-41cb-8689-e34af504c149",
+      "name": "Extract Product ID"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "1f73a02a-c006-4aff-9e4e-dd7d95029dc6",
+              "leftValue": "={{ $json.productId }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        896,
+        -552
+      ],
+      "id": "0bb91eef-b403-42d5-8f6b-85d052f5268c",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "VtHe_WtifdGUhlOw9NMlt",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/VtHe_WtifdGUhlOw9NMlt",
+          "cachedResultName": "SUB:Get and Generate by Product ID"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "productId": "={{ $json.productId }}",
+            "chatId": "={{ $json.chatId }}"
+          },
+          "matchingColumns": [
+            "productId"
+          ],
+          "schema": [
+            {
+              "id": "productId",
+              "displayName": "productId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "chatId",
+              "displayName": "chatId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1120,
+        -552
+      ],
+      "id": "9ee422c1-ef2c-44e2-840b-69dd863145eb",
+      "name": "Call 'SUB:Get and Generate by Product ID'"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "productId": "={{ $json.productId }}"
+      },
+      "type": "n8n-nodes-base.wooCommerce",
+      "typeVersion": 1,
+      "position": [
+        896,
+        -360
+      ],
+      "id": "9c08d592-97c3-42d6-a6b2-4ac741309210",
+      "name": "Get a product",
+      "credentials": {
+        "wooCommerceApi": {
+          "id": "uGpC30yt9WNfKtA1",
+          "name": "WooCommerce account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const texts = $('Edit Fields').first().json.command.split(\" \");\nreturn {\"productId\": texts[1] ?? \"\", \"chatId\": $('Telegram Trigger').first().json.message.from.id};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        -360
+      ],
+      "id": "8908cf1b-d2b9-4f53-8417-379c59be35c9",
+      "name": "Extract Product ID1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "496557cd-d75d-4d58-86dc-fa6a3d7cae0f",
+              "leftValue": "={{ $('Edit Fields').item.json.command }}",
+              "rightValue": "stop",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1568,
+        -816
+      ],
+      "id": "eaaa4043-086e-4b50-bcf6-5bf93bb17dc5",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "errorMessage": "Stop listing."
+      },
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        1792,
+        -912
+      ],
+      "id": "6ff5e3f3-a05b-4d4d-b956-917191d62a31",
+      "name": "Stop and Error"
+    },
+    {
+      "parameters": {
+        "jsCode": "const texts = $('Edit Fields').first().json.command.split(\" \");\nreturn { \"isGetAll\":texts[1] === \"all\", \"items\": texts[1] !== \"all\" && Number(texts[1]) ? texts[1] : \"\"};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        -744
+      ],
+      "id": "c0cac9e3-33e9-4160-9c1b-df037e222758",
+      "name": "Extract number of items"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "74334f03-7f92-46a4-95ca-0f69a5b72767",
+              "leftValue": "={{ $json.items }}",
+              "rightValue": "=",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "665bb7bb-998c-423f-9438-07229fbd4c07",
+              "leftValue": "={{ $json.isGetAll }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        896,
+        -744
+      ],
+      "id": "62164f85-140d-4450-bcb9-529b1492b5ac",
+      "name": "If3"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "returnAll": "={{ $json.isGetAll }}",
+        "limit": "={{ $json.items || 1 }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.wooCommerce",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        -744
+      ],
+      "id": "d088b0c9-beda-4309-a7c0-a8b127f451aa",
+      "name": "Get many products1",
+      "credentials": {
+        "wooCommerceApi": {
+          "id": "uGpC30yt9WNfKtA1",
+          "name": "WooCommerce account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.from.id }}",
+        "text": "=<strong>{{ $json.id }}</strong> - {{ $json.status }}\n{{ $json.name }}\n\n{{ $json.url }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2016,
+        -648
+      ],
+      "id": "8c547c22-974f-44d1-b98b-386848d62789",
+      "name": "Send Product to Telegram1",
+      "webhookId": "1790a0c0-0191-4e38-8364-6c67f1cc6e13",
+      "credentials": {
+        "telegramApi": {
+          "id": "VVVfsF0zp9hQn8N8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "fb9e8382-ea3f-460f-b520-3959e5a8aabc",
+              "name": "id",
+              "value": "={{ $json.id }}",
+              "type": "number"
+            },
+            {
+              "id": "c54160c4-e3e7-44a0-8057-28b59f5d9b58",
+              "name": "name",
+              "value": "={{ $json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "a205cabc-f9ba-46a7-ad59-763034758edb",
+              "name": "url",
+              "value": "={{ $json.permalink }}",
+              "type": "string"
+            },
+            {
+              "id": "b962a8a0-d94a-404c-8cf9-fc0663c6082d",
+              "name": "status",
+              "value": "={{ $json.status }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1792,
+        -720
+      ],
+      "id": "6cdd216d-4cdd-4a57-a75c-4ea83f5fc60a",
+      "name": "Filter needed fields1"
+    },
+    {
+      "parameters": {
+        "options": {
+          "reset": false
+        }
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1344,
+        -744
+      ],
+      "id": "47024336-9ab9-4b3e-a371-d8ea6da68a7e",
+      "name": "Iterate Products1"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.from.id }}",
+        "text": "=<strong>{{ $json.id }}</strong> - {{ $json.status }}\n{{ $json.name }}\n\n{{ $json.permalink }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1120,
+        -360
+      ],
+      "id": "1b418ac0-2804-4093-b52d-9e88744dc24f",
+      "name": "Send Product to Telegram",
+      "webhookId": "1790a0c0-0191-4e38-8364-6c67f1cc6e13",
+      "credentials": {
+        "telegramApi": {
+          "id": "VVVfsF0zp9hQn8N8",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Extract number of items",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extract Product ID",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extract Product ID1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Product ID": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Call 'SUB:Get and Generate by Product ID'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'SUB:Get and Generate by Product ID'": {
+      "main": [
+        []
+      ]
+    },
+    "Extract Product ID1": {
+      "main": [
+        [
+          {
+            "node": "Get a product",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "Stop and Error",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Filter needed fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract number of items": {
+      "main": [
+        [
+          {
+            "node": "If3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If3": {
+      "main": [
+        [
+          {
+            "node": "Get many products1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many products1": {
+      "main": [
+        [
+          {
+            "node": "Iterate Products1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Product to Telegram1": {
+      "main": [
+        [
+          {
+            "node": "Iterate Products1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter needed fields1": {
+      "main": [
+        [
+          {
+            "node": "Send Product to Telegram1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Iterate Products1": {
+      "main": [
+        [],
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a product": {
+      "main": [
+        [
+          {
+            "node": "Send Product to Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "2831df1f-c045-406a-bc7a-67300a2b8d6e",
+  "activeVersionId": null,
+  "versionCounter": 156,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-01-19T09:30:49.925Z",
+      "createdAt": "2026-01-19T09:30:49.925Z",
+      "role": "workflow:owner",
+      "workflowId": "RdgX5i_4sbV4S8CzAoOQs",
+      "projectId": "OZpEMZrnioWDCJsC",
+      "project": {
+        "updatedAt": "2026-01-19T07:38:19.868Z",
+        "createdAt": "2026-01-19T07:37:57.912Z",
+        "id": "OZpEMZrnioWDCJsC",
+        "name": "Lemuel Francisco <freelance.lemuelrfrancisco@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "38f71c9d-2cc5-453b-8284-e3d5eb508e7c",
+        "projectRelations": [
+          {
+            "updatedAt": "2026-01-19T07:37:57.912Z",
+            "createdAt": "2026-01-19T07:37:57.912Z",
+            "userId": "38f71c9d-2cc5-453b-8284-e3d5eb508e7c",
+            "projectId": "OZpEMZrnioWDCJsC",
+            "user": {
+              "updatedAt": "2026-02-04T01:02:15.000Z",
+              "createdAt": "2026-01-19T07:37:57.337Z",
+              "id": "38f71c9d-2cc5-453b-8284-e3d5eb508e7c",
+              "email": "freelance.lemuelrfrancisco@gmail.com",
+              "firstName": "Lemuel",
+              "lastName": "Francisco",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2026-01-19T07:38:36.482Z",
+                "personalization_survey_n8n_version": "2.2.4",
+                "companyType": "personal",
+                "reportedSource": "youtube"
+              },
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "VtHe_WtifdGUhlOw9NMlt",
+                "userActivatedAt": 1768896964872,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1769644632310
+                }
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-02-03",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": null
+}

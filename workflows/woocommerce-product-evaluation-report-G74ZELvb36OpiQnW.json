@@ -1,0 +1,652 @@
+{
+  "updatedAt": "2026-02-04T01:33:49.581Z",
+  "createdAt": "2026-01-29T03:13:35.607Z",
+  "id": "G74ZELvb36OpiQnW",
+  "name": "WooCommerce Product Evaluation Report",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -208,
+        304
+      ],
+      "id": "manual-trigger",
+      "name": "Manual Trigger"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "months"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -208,
+        512
+      ],
+      "id": "schedule-trigger",
+      "name": "Weekly Schedule"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "returnAll": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.wooCommerce",
+      "typeVersion": 1,
+      "position": [
+        0,
+        400
+      ],
+      "id": "get-products",
+      "name": "Get WooCommerce Products",
+      "credentials": {
+        "wooCommerceApi": {
+          "id": "uGpC30yt9WNfKtA1",
+          "name": "WooCommerce account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const product = $json;\n\nreturn {\n  productId: product.id,\n  productName: product.name || '',\n  productDescription: (product.description || '').replace(/<[^>]*>/g, '').substring(0, 1500),\n  productShortDescription: (product.short_description || '').replace(/<[^>]*>/g, ''),\n  productPrice: product.price || '0',\n  productRegularPrice: product.regular_price || '0',\n  productSalePrice: product.sale_price || '',\n  productCategories: (product.categories || []).map(c => c.name).join(', '),\n  productTags: (product.tags || []).map(t => t.name).join(', '),\n  productImage: product.images?.[0]?.src || '',\n  productUrl: product.permalink || '',\n  productStatus: product.status || '',\n  productStock: product.stock_status || '',\n  totalSales: product.total_sales || 0,\n  averageRating: product.average_rating || '0',\n  ratingCount: product.rating_count || 0\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        400
+      ],
+      "id": "extract-product-data",
+      "name": "Extract Product Data"
+    },
+    {
+      "parameters": {
+        "jsCode": "const product = $json;\n\nconst prompt = `You are a ROCKSTAR Digital Marketing Expert and Market Researcher with 20+ years of experience in e-commerce optimization and pricing strategy. Analyze this WooCommerce product and provide a comprehensive evaluation report.\n\n## PRODUCT DATA:\n- **Name:** ${product.productName}\n- **Description:** ${product.productDescription}\n- **Short Description:** ${product.productShortDescription}\n- **Current Price:** $${product.productPrice}\n- **Regular Price:** $${product.productRegularPrice}\n- **Sale Price:** ${product.productSalePrice ? '$' + product.productSalePrice : 'N/A'}\n- **Categories:** ${product.productCategories}\n- **Tags:** ${product.productTags}\n- **Status:** ${product.productStatus}\n- **Stock:** ${product.productStock}\n- **Total Sales:** ${product.totalSales}\n- **Average Rating:** ${product.averageRating}/5 (${product.ratingCount} reviews)\n\n## EVALUATION CRITERIA:\nAnalyze and score each area from 1-10, then provide specific actionable improvements.\n\n## PRICING ANALYSIS (IMPORTANT):\n- Compare the current price against market standards for similar products\n- Determine if the price is CHEAP, FAIR, or EXPENSIVE\n- Provide a suggested optimal retail price based on:\n  - Product category standards\n  - Perceived value\n  - Competition\n  - Target market purchasing power\n\n## REQUIRED OUTPUT FORMAT (JSON):\n{\n  \"overallScore\": <1-10>,\n  \"marketabilityScore\": <1-10>,\n  \"isMarketable\": <true/false>,\n  \"verdict\": \"<EXCELLENT/GOOD/NEEDS IMPROVEMENT/POOR>\",\n  \"summary\": \"<2-3 sentence executive summary>\",\n  \"scores\": {\n    \"productName\": <1-10>,\n    \"description\": <1-10>,\n    \"pricing\": <1-10>,\n    \"categoryOptimization\": <1-10>,\n    \"seoReadiness\": <1-10>\n  },\n  \"pricingAnalysis\": {\n    \"currentPrice\": <current price as number>,\n    \"priceVerdict\": \"<CHEAP/FAIR/EXPENSIVE>\",\n    \"suggestedRetailPrice\": <suggested price as number>,\n    \"priceJustification\": \"<why this price is recommended>\",\n    \"competitorPriceRange\": \"<estimated competitor price range>\",\n    \"profitPotential\": \"<HIGH/MEDIUM/LOW>\",\n    \"pricingStrategy\": \"<recommended pricing strategy>\"\n  },\n  \"improvements\": {\n    \"productName\": {\n      \"currentIssues\": \"<issues with current name>\",\n      \"suggestedName\": \"<improved product name>\",\n      \"reasoning\": \"<why this is better>\"\n    },\n    \"description\": {\n      \"currentIssues\": \"<issues with current description>\",\n      \"suggestedDescription\": \"<improved 2-3 paragraph description>\",\n      \"keyBenefitsToHighlight\": [\"<benefit1>\", \"<benefit2>\", \"<benefit3>\"]\n    },\n    \"shortDescription\": {\n      \"suggestedShortDescription\": \"<compelling 1-2 sentence hook>\"\n    }\n  },\n  \"targetAudience\": \"<ideal customer profile>\",\n  \"marketingAngles\": [\"<angle1>\", \"<angle2>\", \"<angle3>\"]\n}\n\nRespond ONLY with valid JSON, no markdown or extra text.`;\n\nreturn {\n  requestBody: {\n    contents: [{\n      parts: [{\n        text: prompt\n      }]\n    }],\n    generationConfig: {\n      temperature: 0.7,\n      maxOutputTokens: 4096\n    }\n  },\n  productData: product\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        608,
+        400
+      ],
+      "id": "prepare-evaluation-prompt",
+      "name": "Prepare Evaluation Prompt"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.requestBody) }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        800,
+        400
+      ],
+      "id": "call-gemini-api",
+      "name": "Evaluate with Gemini AI",
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "fxd1AYCxA3ZIgQAD",
+          "name": "Gemini API Key"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $json;\nconst productData = $('Prepare Evaluation Prompt').item.json.productData;\n\nlet text = '';\ntry {\n  text = response.candidates?.[0]?.content?.parts?.[0]?.text || '';\n} catch (e) {\n  text = '';\n}\n\nif (!text) {\n  return null;\n}\n\nlet evaluation;\ntry {\n  const jsonMatch = text.match(/\\{[\\s\\S]*\\}/);\n  if (jsonMatch) {\n    evaluation = JSON.parse(jsonMatch[0]);\n  } else {\n    return null;\n  }\n} catch (e) {\n  return null;\n}\n\n// Return flat object with all fields including pricing\nreturn {\n  EvaluatedAt: new Date().toISOString().split('T')[0],\n  ProductID: String(productData.productId),\n  ProductName: String(productData.productName || ''),\n  CurrentPrice: String(productData.productPrice || ''),\n  OverallScore: String(evaluation.overallScore || ''),\n  Verdict: String(evaluation.verdict || ''),\n  Summary: String(evaluation.summary || '').substring(0, 500),\n  \n  // Pricing Analysis\n  PriceVerdict: String(evaluation.pricingAnalysis?.priceVerdict || ''),\n  SuggestedRetailPrice: String(evaluation.pricingAnalysis?.suggestedRetailPrice || ''),\n  PriceJustification: String(evaluation.pricingAnalysis?.priceJustification || ''),\n  CompetitorPriceRange: String(evaluation.pricingAnalysis?.competitorPriceRange || ''),\n  ProfitPotential: String(evaluation.pricingAnalysis?.profitPotential || ''),\n  PricingStrategy: String(evaluation.pricingAnalysis?.pricingStrategy || ''),\n  \n  // Other fields\n  SuggestedName: String(evaluation.improvements?.productName?.suggestedName || ''),\n  SuggestedDesc: String(evaluation.improvements?.shortDescription?.suggestedShortDescription || ''),\n  TargetAudience: String(evaluation.targetAudience || '')\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1008,
+        400
+      ],
+      "id": "parse-evaluation",
+      "name": "Parse Evaluation Response"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1k6dLR39LQqj7igNv5LhF34jm26zfXBx3XpwC_Ld0yVw",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "ProductEvaluations",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "EvaluatedAt",
+              "displayName": "EvaluatedAt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "ProductID",
+              "displayName": "ProductID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "ProductName",
+              "displayName": "ProductName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "CurrentPrice",
+              "displayName": "CurrentPrice",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "OverallScore",
+              "displayName": "OverallScore",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Verdict",
+              "displayName": "Verdict",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Summary",
+              "displayName": "Summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "SuggestedName",
+              "displayName": "SuggestedName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "SuggestedDesc",
+              "displayName": "SuggestedDesc",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "TargetAudience",
+              "displayName": "TargetAudience",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "CurrentPrice",
+              "displayName": "CurrentPrice",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "PriceVerdict",
+              "displayName": "PriceVerdict",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "SuggestedRetailPrice",
+              "displayName": "SuggestedRetailPrice",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "PriceJustification",
+              "displayName": "PriceJustification",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "CompetitorPriceRange",
+              "displayName": "CompetitorPriceRange",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "ProfitPotential",
+              "displayName": "ProfitPotential",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "PricingStrategy",
+              "displayName": "PricingStrategy",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1408,
+        304
+      ],
+      "id": "save-evaluation",
+      "name": "Save Evaluation to Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "QrdVcRSV8DgAcNck",
+          "name": "Google Sheets account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "content": "## WooCommerce Product Evaluation Report\n\n**Purpose:** Analyze products for marketability and provide improvement suggestions.\n\n**Evaluates:**\n- Product Name\n- Description Quality\n- Pricing Strategy\n- Category/Tag Optimization\n- SEO Readiness\n\n**Output:** Comprehensive report with scores and actionable improvements saved to Google Sheets.\n\n**Triggers:**\n- Manual: Run on demand\n- Schedule: Weekly automatic evaluation",
+        "height": 340,
+        "width": 340
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        240
+      ],
+      "id": "info-note",
+      "name": "Workflow Info"
+    },
+    {
+      "parameters": {
+        "content": "## Google Sheets Columns\n\nThe evaluation saves 30+ data points including:\n- Scores (Overall, Marketability, Name, Description, Pricing, SEO)\n- Suggested improvements for name, description, pricing\n- SEO recommendations (title, meta, keywords)\n- Target audience & marketing angles\n\n**Sheet Name:** ProductEvaluations",
+        "height": 220,
+        "width": 300,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1408,
+        480
+      ],
+      "id": "sheets-note",
+      "name": "Sheets Info"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        208,
+        400
+      ],
+      "id": "loop-products",
+      "name": "Loop Over Products",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "amount": 2
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1600,
+        304
+      ],
+      "id": "wait-between",
+      "name": "Wait 2s",
+      "webhookId": "wait-eval"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "not-null",
+              "leftValue": "={{ $json.ProductID }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1200,
+        400
+      ],
+      "id": "filter-valid",
+      "name": "Has Valid Data?"
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get WooCommerce Products",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Weekly Schedule": {
+      "main": [
+        [
+          {
+            "node": "Get WooCommerce Products",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get WooCommerce Products": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Products",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Products": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Extract Product Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Product Data": {
+      "main": [
+        [
+          {
+            "node": "Prepare Evaluation Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Evaluation Prompt": {
+      "main": [
+        [
+          {
+            "node": "Evaluate with Gemini AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Evaluate with Gemini AI": {
+      "main": [
+        [
+          {
+            "node": "Parse Evaluation Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Evaluation Response": {
+      "main": [
+        [
+          {
+            "node": "Has Valid Data?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Evaluation Success?": {
+      "main": [
+        [
+          {
+            "node": "Save Evaluation to Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait 2s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Evaluation to Sheets": {
+      "main": [
+        [
+          {
+            "node": "Wait 2s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 2s": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Products",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Valid Data?": {
+      "main": [
+        [
+          {
+            "node": "Save Evaluation to Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait 2s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "1fcc9a45-0d6a-4691-a03d-7453927d0af8",
+  "activeVersionId": null,
+  "versionCounter": 17,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-01-29T03:13:35.611Z",
+      "createdAt": "2026-01-29T03:13:35.611Z",
+      "role": "workflow:owner",
+      "workflowId": "G74ZELvb36OpiQnW",
+      "projectId": "OZpEMZrnioWDCJsC",
+      "project": {
+        "updatedAt": "2026-01-19T07:38:19.868Z",
+        "createdAt": "2026-01-19T07:37:57.912Z",
+        "id": "OZpEMZrnioWDCJsC",
+        "name": "Lemuel Francisco <freelance.lemuelrfrancisco@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "38f71c9d-2cc5-453b-8284-e3d5eb508e7c",
+        "projectRelations": [
+          {
+            "updatedAt": "2026-01-19T07:37:57.912Z",
+            "createdAt": "2026-01-19T07:37:57.912Z",
+            "userId": "38f71c9d-2cc5-453b-8284-e3d5eb508e7c",
+            "projectId": "OZpEMZrnioWDCJsC",
+            "user": {
+              "updatedAt": "2026-02-04T01:02:15.000Z",
+              "createdAt": "2026-01-19T07:37:57.337Z",
+              "id": "38f71c9d-2cc5-453b-8284-e3d5eb508e7c",
+              "email": "freelance.lemuelrfrancisco@gmail.com",
+              "firstName": "Lemuel",
+              "lastName": "Francisco",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2026-01-19T07:38:36.482Z",
+                "personalization_survey_n8n_version": "2.2.4",
+                "companyType": "personal",
+                "reportedSource": "youtube"
+              },
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "VtHe_WtifdGUhlOw9NMlt",
+                "userActivatedAt": 1768896964872,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1769644632310
+                }
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-02-03",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": null
+}

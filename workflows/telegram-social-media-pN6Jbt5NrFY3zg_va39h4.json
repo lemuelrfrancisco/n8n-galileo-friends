@@ -1,0 +1,1755 @@
+{
+  "updatedAt": "2026-01-20T09:46:09.166Z",
+  "createdAt": "2026-01-19T07:51:18.961Z",
+  "id": "pN6Jbt5NrFY3zg_va39h4",
+  "name": "Telegram - Social Media",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {
+          "chatIds": "8430120206"
+        }
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -2032,
+        -32
+      ],
+      "id": "e36d833e-d3b2-447c-9f8c-3dd47bec29ed",
+      "name": "Telegram Trigger",
+      "webhookId": "26673c82-3ce2-405f-888c-43c10a2931dd",
+      "credentials": {
+        "telegramApi": {
+          "id": "VVVfsF0zp9hQn8N8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.prompt }}",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -1584,
+        -32
+      ],
+      "id": "f1134173-7f66-48a0-bf45-e57164b2ffc2",
+      "name": "AI Agent",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -1568,
+        192
+      ],
+      "id": "c117eb85-b5bd-419f-bcc1-76a558fbb553",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "vyE1k8wAmLTyP2Z7",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n\t\"type\": \"object\",\n\t\"properties\": {\n      \"post\":{\n        \"type\":\"string\"\n      },\n      \"imagePrompt\":{\n        \"type\":\"string\"\n      },\n      \"imageUrl\": {\n        \"type\":\"string\"\n      }\n\t}\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -1440,
+        192
+      ],
+      "id": "11598c7b-730f-47af-9143-77075c1fe9c8",
+      "name": "Structured Output Parser",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0afa407b-e7e2-465b-bde2-b7273a09e92e",
+              "name": "prompt",
+              "value": "=  I want to create a facebook and instagram post of my Online toy store product,{{ $json.message.text }}. generate a 1 amazing post description for my social media, do not include the website url and prompt for the image of the product including in the prompt is usi the same product from the url in generating the image.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1808,
+        -32
+      ],
+      "id": "1be4ea30-5fe9-4f25-98ce-368725535a33",
+      "name": "Prompt Command"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash-image-preview",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash-image-preview (Nano Banana)"
+        },
+        "prompt": "={{ $json.output.imagePrompt }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        -1232,
+        -32
+      ],
+      "id": "7bf23bbe-d6cc-49c4-8705-172f285a6d34",
+      "name": "Generate an image",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "vyE1k8wAmLTyP2Z7",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "completion",
+        "respondWith": "returnBinary",
+        "completionTitle": "=Your Social media post for {{ $('On form submission').item.json.url }} is ready.",
+        "completionMessage": "={{ $json.post }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.4,
+      "position": [
+        -784,
+        -176
+      ],
+      "id": "d8c3eab5-7a10-4fbd-9d5c-65582f571b0a",
+      "name": "Form",
+      "webhookId": "d843607d-ed1d-4f79-bc68-f63091492792",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "sendPhoto",
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "binaryData": true,
+        "binaryPropertyName": "=data",
+        "additionalFields": {
+          "caption": "={{ $('AI Agent').item.json.output.post }}"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -1008,
+        -128
+      ],
+      "id": "2a60ac00-e435-4aad-95b9-60afa4aabde5",
+      "name": "Send a photo message",
+      "webhookId": "9dbe43c1-e3c9-427b-b587-4ff34c68b16c",
+      "credentials": {
+        "telegramApi": {
+          "id": "VVVfsF0zp9hQn8N8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://graph.facebook.com/v24.0/906637619202517/feed?access_token=EAAb8JhDZBZA58BQdjTyAU7tPbkG8i8HcaIJKB2gqX0bL6unrrQ6tbtIJ8joMfmVswA25XuttAkOFITvQxYZA84U9JE2MZBsOPbULOFawDm8Dmy1kGd8M05dAGZBGz1fkTrNwKkR7uDV9ajN94jLTYPjKCZC9xCyUKZCWZC9perFrIR6LXjwuiHRdiXahOfVub6WebglxcZA71mDFnXZCsi0nCUcFRqIlwAkQROHfwjdBxCU9I9yHFh49CBfKBuzv8U",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "{  \"access_token\":\"EAAb8JhDZBZA58BQdjTyAU7tPbkG8i8HcaIJKB2gqX0bL6unrrQ6tbtIJ8joMfmVswA25XuttAkOFITvQxYZA84U9JE2MZBsOPbULOFawDm8Dmy1kGd8M05dAGZBGz1fkTrNwKkR7uDV9ajN94jLTYPjKCZC9xCyUKZCWZC9perFrIR6LXjwuiHRdiXahOfVub6WebglxcZA71mDFnXZCsi0nCUcFRqIlwAkQROHfwjdBxCU9I9yHFh49CBfKBuzv8U\"\n}\n",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -2032,
+        544
+      ],
+      "id": "85ff4048-65b5-4e0f-bb39-229fa2b5e91a",
+      "name": "GET FB Posts",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "httpRequestMethod": "POST",
+        "graphApiVersion": "v23.0",
+        "node": "906637619202517",
+        "edge": "photos",
+        "sendBinaryData": true,
+        "binaryPropertyName": "=image",
+        "options": {
+          "queryParameters": {
+            "parameter": [
+              {
+                "name": "caption",
+                "value": "test"
+              },
+              {
+                "name": "published",
+                "value": "false"
+              },
+              {
+                "name": "attached_media",
+                "value": "data"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "typeVersion": 1,
+      "position": [
+        336,
+        64
+      ],
+      "id": "40f50442-0169-40bc-9495-dd427a5d4b20",
+      "name": "Facebook Graph API",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "httpRequestMethod": "POST",
+        "graphApiVersion": "v23.0",
+        "node": "906637619202517",
+        "edge": "feed",
+        "options": {
+          "queryParameters": {
+            "parameter": [
+              {
+                "name": "message",
+                "value": "={{ $('Result').item.json.post }}"
+              },
+              {
+                "name": "published",
+                "value": "true"
+              },
+              {
+                "name": "attached_media",
+                "value": "=[{\"media_fbid\": \"{{ $json.id }}\"}]"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "typeVersion": 1,
+      "position": [
+        560,
+        64
+      ],
+      "id": "257b7083-7513-4c07-9c18-42d288068475",
+      "name": "Facebook Graph API1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "hostUrl": "=graph.instagram.com",
+        "httpRequestMethod": "POST",
+        "graphApiVersion": "v23.0",
+        "node": "me",
+        "edge": "media",
+        "options": {
+          "queryParametersJson": "{}"
+        }
+      },
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "typeVersion": 1,
+      "position": [
+        -112,
+        -176
+      ],
+      "id": "74501a53-c983-46cf-9483-2360a5a6b6db",
+      "name": "Facebook Graph API2",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "hostUrl": "=graph.instagram.com",
+        "httpRequestMethod": "POST",
+        "graphApiVersion": "v23.0",
+        "node": "me",
+        "edge": "media",
+        "options": {
+          "queryParameters": {
+            "parameter": [
+              {
+                "name": "caption",
+                "value": "test"
+              },
+              {
+                "name": "published",
+                "value": "false"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "typeVersion": 1,
+      "position": [
+        -336,
+        -176
+      ],
+      "id": "8fe5390e-f29f-4f73-9312-ac4ee9eeaf9b",
+      "name": "Facebook Graph API3",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "=post {{ $json.data['Generate again?'] }}",
+                    "rightValue": "p",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "466c0278-e092-45ea-a46b-dcdda5d6f5db"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "15b7a97c-1575-44c5-b40c-d8c8758ffe51",
+                    "leftValue": "=image {{ $json.data['Generate again?'] }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "35b2215f-c511-4d64-af07-2216af281432",
+                    "leftValue": "={{ $json.data['Generate again?'] }}",
+                    "rightValue": "no",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": 2
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -112,
+        256
+      ],
+      "id": "487373e5-1426-4373-92eb-7e89603b94d3",
+      "name": "Switch",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "message": "Generate content again?",
+        "responseType": "customForm",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Generate again?",
+              "fieldType": "dropdown",
+              "defaultValue": "post",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "post"
+                  },
+                  {
+                    "option": "image"
+                  }
+                ]
+              },
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -336,
+        272
+      ],
+      "id": "f769301e-4f22-4a0b-8cfc-35a65e549f73",
+      "name": "generate again?",
+      "webhookId": "0b49d5a3-92cd-44da-ae9a-3a31e22cc4f5",
+      "credentials": {
+        "telegramApi": {
+          "id": "VVVfsF0zp9hQn8N8",
+          "name": "Telegram account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0d270ab0-a6f3-4930-ad0d-f40eee784d7b",
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -560,
+        16
+      ],
+      "id": "aa1307e8-e56f-4726-a4b1-88fe923cb665",
+      "name": "is post to fb?",
+      "alwaysOutputData": true,
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "message": "Upload content to Facebook?",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double"
+          }
+        },
+        "options": {
+          "limitWaitTime": {
+            "values": {
+              "resumeAmount": 0.5,
+              "resumeUnit": "minutes"
+            }
+          },
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -784,
+        16
+      ],
+      "id": "edaecb66-6322-477f-b5cd-4ac2db751844",
+      "name": "ask if post to fb",
+      "webhookId": "31798ae5-ff3b-4c5a-b948-589df8d5add5",
+      "credentials": {
+        "telegramApi": {
+          "id": "VVVfsF0zp9hQn8N8",
+          "name": "Telegram account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "31f5a88e-068e-44ae-ae28-db2c6215dbf0",
+              "name": "post",
+              "value": "={{ $('AI Agent').item.json.output.post }}",
+              "type": "string"
+            },
+            {
+              "id": "1ba9a8b8-8566-4559-9b86-6d677346fb70",
+              "name": "=base64Data",
+              "value": "={{ $json.base64Data }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -560,
+        320
+      ],
+      "id": "27d3a795-e726-4afe-9679-f6a592ff08c7",
+      "name": "Result",
+      "alwaysOutputData": true,
+      "disabled": true
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -336,
+        64
+      ],
+      "id": "ecc8fa5b-1b13-4cf0-b8e0-54a5f0e7f210",
+      "name": "Merge",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "binaryToPropery",
+        "destinationKey": "base64Data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        -784,
+        320
+      ],
+      "id": "5aa38915-f58b-42ae-9486-7bdbe3b03512",
+      "name": "Extract from File",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "base64Data",
+        "binaryPropertyName": "image",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        112,
+        64
+      ],
+      "id": "071bb671-27da-4907-89e3-47d03f82bfe1",
+      "name": "Convert to File",
+      "alwaysOutputData": true,
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "base64Data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -112,
+        64
+      ],
+      "id": "fb5429d1-9c07-4ab3-9f07-68612579ac7e",
+      "name": "Split Out",
+      "disabled": true
+    }
+  ],
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Prompt Command",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Generate an image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prompt Command": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate an image": {
+      "main": [
+        [
+          {
+            "node": "Send a photo message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a photo message": {
+      "main": [
+        [
+          {
+            "node": "Form",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "ask if post to fb",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Facebook Graph API": {
+      "main": [
+        [
+          {
+            "node": "Facebook Graph API1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Facebook Graph API3": {
+      "main": [
+        [
+          {
+            "node": "Facebook Graph API2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "generate again?": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "is post to fb?": {
+      "main": [
+        [
+          {
+            "node": "Facebook Graph API3",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "generate again?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ask if post to fb": {
+      "main": [
+        [
+          {
+            "node": "is post to fb?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Result": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Facebook Graph API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "d3e566df-d290-4259-9e72-d5ab9390d8dd",
+  "activeVersionId": "8ea341ad-65d6-42d4-8ec8-bf74007f18c8",
+  "versionCounter": 10,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-01-19T07:51:18.964Z",
+      "createdAt": "2026-01-19T07:51:18.964Z",
+      "role": "workflow:owner",
+      "workflowId": "pN6Jbt5NrFY3zg_va39h4",
+      "projectId": "OZpEMZrnioWDCJsC",
+      "project": {
+        "updatedAt": "2026-01-19T07:38:19.868Z",
+        "createdAt": "2026-01-19T07:37:57.912Z",
+        "id": "OZpEMZrnioWDCJsC",
+        "name": "Lemuel Francisco <freelance.lemuelrfrancisco@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "38f71c9d-2cc5-453b-8284-e3d5eb508e7c",
+        "projectRelations": [
+          {
+            "updatedAt": "2026-01-19T07:37:57.912Z",
+            "createdAt": "2026-01-19T07:37:57.912Z",
+            "userId": "38f71c9d-2cc5-453b-8284-e3d5eb508e7c",
+            "projectId": "OZpEMZrnioWDCJsC",
+            "user": {
+              "updatedAt": "2026-02-04T01:02:15.000Z",
+              "createdAt": "2026-01-19T07:37:57.337Z",
+              "id": "38f71c9d-2cc5-453b-8284-e3d5eb508e7c",
+              "email": "freelance.lemuelrfrancisco@gmail.com",
+              "firstName": "Lemuel",
+              "lastName": "Francisco",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2026-01-19T07:38:36.482Z",
+                "personalization_survey_n8n_version": "2.2.4",
+                "companyType": "personal",
+                "reportedSource": "youtube"
+              },
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "VtHe_WtifdGUhlOw9NMlt",
+                "userActivatedAt": 1768896964872,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1769644632310
+                }
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-02-03",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-01-19T09:18:29.000Z",
+    "createdAt": "2026-01-19T08:00:56.689Z",
+    "versionId": "8ea341ad-65d6-42d4-8ec8-bf74007f18c8",
+    "workflowId": "pN6Jbt5NrFY3zg_va39h4",
+    "nodes": [
+      {
+        "parameters": {
+          "updates": [
+            "message"
+          ],
+          "additionalFields": {
+            "chatIds": "8430120206"
+          }
+        },
+        "type": "n8n-nodes-base.telegramTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          -2032,
+          -32
+        ],
+        "id": "e36d833e-d3b2-447c-9f8c-3dd47bec29ed",
+        "name": "Telegram Trigger",
+        "webhookId": "26673c82-3ce2-405f-888c-43c10a2931dd",
+        "credentials": {
+          "telegramApi": {
+            "id": "VVVfsF0zp9hQn8N8",
+            "name": "Telegram account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "={{ $json.prompt }}",
+          "hasOutputParser": true,
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "typeVersion": 3.1,
+        "position": [
+          -1584,
+          -32
+        ],
+        "id": "f1134173-7f66-48a0-bf45-e57164b2ffc2",
+        "name": "AI Agent",
+        "alwaysOutputData": false
+      },
+      {
+        "parameters": {
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+        "typeVersion": 1,
+        "position": [
+          -1568,
+          192
+        ],
+        "id": "c117eb85-b5bd-419f-bcc1-76a558fbb553",
+        "name": "Google Gemini Chat Model",
+        "credentials": {
+          "googlePalmApi": {
+            "id": "vyE1k8wAmLTyP2Z7",
+            "name": "Google Gemini(PaLM) Api account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "schemaType": "manual",
+          "inputSchema": "{\n\t\"type\": \"object\",\n\t\"properties\": {\n      \"post\":{\n        \"type\":\"string\"\n      },\n      \"imagePrompt\":{\n        \"type\":\"string\"\n      },\n      \"imageUrl\": {\n        \"type\":\"string\"\n      }\n\t}\n}"
+        },
+        "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+        "typeVersion": 1.3,
+        "position": [
+          -1440,
+          192
+        ],
+        "id": "11598c7b-730f-47af-9143-77075c1fe9c8",
+        "name": "Structured Output Parser",
+        "alwaysOutputData": true
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "0afa407b-e7e2-465b-bde2-b7273a09e92e",
+                "name": "prompt",
+                "value": "=  I want to create a facebook and instagram post of my Online toy store product,{{ $json.message.text }}. generate a 1 amazing post description for my social media, do not include the website url and prompt for the image of the product including in the prompt is usi the same product from the url in generating the image.",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          -1808,
+          -32
+        ],
+        "id": "1be4ea30-5fe9-4f25-98ce-368725535a33",
+        "name": "Prompt Command"
+      },
+      {
+        "parameters": {
+          "resource": "image",
+          "modelId": {
+            "__rl": true,
+            "value": "models/gemini-2.5-flash-image-preview",
+            "mode": "list",
+            "cachedResultName": "models/gemini-2.5-flash-image-preview (Nano Banana)"
+          },
+          "prompt": "={{ $json.output.imagePrompt }}",
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.googleGemini",
+        "typeVersion": 1.1,
+        "position": [
+          -1232,
+          -32
+        ],
+        "id": "7bf23bbe-d6cc-49c4-8705-172f285a6d34",
+        "name": "Generate an image",
+        "alwaysOutputData": true,
+        "credentials": {
+          "googlePalmApi": {
+            "id": "vyE1k8wAmLTyP2Z7",
+            "name": "Google Gemini(PaLM) Api account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "completion",
+          "respondWith": "returnBinary",
+          "completionTitle": "=Your Social media post for {{ $('On form submission').item.json.url }} is ready.",
+          "completionMessage": "={{ $json.post }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.form",
+        "typeVersion": 2.4,
+        "position": [
+          -784,
+          -176
+        ],
+        "id": "d8c3eab5-7a10-4fbd-9d5c-65582f571b0a",
+        "name": "Form",
+        "webhookId": "d843607d-ed1d-4f79-bc68-f63091492792",
+        "disabled": true
+      },
+      {
+        "parameters": {
+          "operation": "sendPhoto",
+          "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+          "binaryData": true,
+          "binaryPropertyName": "=data",
+          "additionalFields": {
+            "caption": "={{ $('AI Agent').item.json.output.post }}"
+          }
+        },
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          -1008,
+          -128
+        ],
+        "id": "2a60ac00-e435-4aad-95b9-60afa4aabde5",
+        "name": "Send a photo message",
+        "webhookId": "9dbe43c1-e3c9-427b-b587-4ff34c68b16c",
+        "credentials": {
+          "telegramApi": {
+            "id": "VVVfsF0zp9hQn8N8",
+            "name": "Telegram account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "url": "https://graph.facebook.com/v24.0/906637619202517/feed?access_token=EAAb8JhDZBZA58BQdjTyAU7tPbkG8i8HcaIJKB2gqX0bL6unrrQ6tbtIJ8joMfmVswA25XuttAkOFITvQxYZA84U9JE2MZBsOPbULOFawDm8Dmy1kGd8M05dAGZBGz1fkTrNwKkR7uDV9ajN94jLTYPjKCZC9xCyUKZCWZC9perFrIR6LXjwuiHRdiXahOfVub6WebglxcZA71mDFnXZCsi0nCUcFRqIlwAkQROHfwjdBxCU9I9yHFh49CBfKBuzv8U",
+          "sendHeaders": true,
+          "specifyHeaders": "json",
+          "jsonHeaders": "{  \"access_token\":\"EAAb8JhDZBZA58BQdjTyAU7tPbkG8i8HcaIJKB2gqX0bL6unrrQ6tbtIJ8joMfmVswA25XuttAkOFITvQxYZA84U9JE2MZBsOPbULOFawDm8Dmy1kGd8M05dAGZBGz1fkTrNwKkR7uDV9ajN94jLTYPjKCZC9xCyUKZCWZC9perFrIR6LXjwuiHRdiXahOfVub6WebglxcZA71mDFnXZCsi0nCUcFRqIlwAkQROHfwjdBxCU9I9yHFh49CBfKBuzv8U\"\n}\n",
+          "sendBody": true,
+          "bodyParameters": {
+            "parameters": [
+              {}
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          -2032,
+          544
+        ],
+        "id": "85ff4048-65b5-4e0f-bb39-229fa2b5e91a",
+        "name": "GET FB Posts",
+        "disabled": true
+      },
+      {
+        "parameters": {
+          "httpRequestMethod": "POST",
+          "graphApiVersion": "v23.0",
+          "node": "906637619202517",
+          "edge": "photos",
+          "sendBinaryData": true,
+          "binaryPropertyName": "=image",
+          "options": {
+            "queryParameters": {
+              "parameter": [
+                {
+                  "name": "caption",
+                  "value": "test"
+                },
+                {
+                  "name": "published",
+                  "value": "false"
+                },
+                {
+                  "name": "attached_media",
+                  "value": "data"
+                }
+              ]
+            }
+          }
+        },
+        "type": "n8n-nodes-base.facebookGraphApi",
+        "typeVersion": 1,
+        "position": [
+          336,
+          64
+        ],
+        "id": "40f50442-0169-40bc-9495-dd427a5d4b20",
+        "name": "Facebook Graph API",
+        "disabled": true
+      },
+      {
+        "parameters": {
+          "httpRequestMethod": "POST",
+          "graphApiVersion": "v23.0",
+          "node": "906637619202517",
+          "edge": "feed",
+          "options": {
+            "queryParameters": {
+              "parameter": [
+                {
+                  "name": "message",
+                  "value": "={{ $('Result').item.json.post }}"
+                },
+                {
+                  "name": "published",
+                  "value": "true"
+                },
+                {
+                  "name": "attached_media",
+                  "value": "=[{\"media_fbid\": \"{{ $json.id }}\"}]"
+                }
+              ]
+            }
+          }
+        },
+        "type": "n8n-nodes-base.facebookGraphApi",
+        "typeVersion": 1,
+        "position": [
+          560,
+          64
+        ],
+        "id": "257b7083-7513-4c07-9c18-42d288068475",
+        "name": "Facebook Graph API1",
+        "disabled": true
+      },
+      {
+        "parameters": {
+          "hostUrl": "=graph.instagram.com",
+          "httpRequestMethod": "POST",
+          "graphApiVersion": "v23.0",
+          "node": "me",
+          "edge": "media",
+          "options": {
+            "queryParametersJson": "{}"
+          }
+        },
+        "type": "n8n-nodes-base.facebookGraphApi",
+        "typeVersion": 1,
+        "position": [
+          -112,
+          -176
+        ],
+        "id": "74501a53-c983-46cf-9483-2360a5a6b6db",
+        "name": "Facebook Graph API2",
+        "disabled": true
+      },
+      {
+        "parameters": {
+          "hostUrl": "=graph.instagram.com",
+          "httpRequestMethod": "POST",
+          "graphApiVersion": "v23.0",
+          "node": "me",
+          "edge": "media",
+          "options": {
+            "queryParameters": {
+              "parameter": [
+                {
+                  "name": "caption",
+                  "value": "test"
+                },
+                {
+                  "name": "published",
+                  "value": "false"
+                }
+              ]
+            }
+          }
+        },
+        "type": "n8n-nodes-base.facebookGraphApi",
+        "typeVersion": 1,
+        "position": [
+          -336,
+          -176
+        ],
+        "id": "8fe5390e-f29f-4f73-9312-ac4ee9eeaf9b",
+        "name": "Facebook Graph API3",
+        "disabled": true
+      },
+      {
+        "parameters": {
+          "rules": {
+            "values": [
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "=post {{ $json.data['Generate again?'] }}",
+                      "rightValue": "p",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      },
+                      "id": "466c0278-e092-45ea-a46b-dcdda5d6f5db"
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "id": "15b7a97c-1575-44c5-b40c-d8c8758ffe51",
+                      "leftValue": "=image {{ $json.data['Generate again?'] }}",
+                      "rightValue": "",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "id": "35b2215f-c511-4d64-af07-2216af281432",
+                      "leftValue": "={{ $json.data['Generate again?'] }}",
+                      "rightValue": "no",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              }
+            ]
+          },
+          "options": {
+            "fallbackOutput": 2
+          }
+        },
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3.4,
+        "position": [
+          -112,
+          256
+        ],
+        "id": "487373e5-1426-4373-92eb-7e89603b94d3",
+        "name": "Switch",
+        "disabled": true
+      },
+      {
+        "parameters": {
+          "operation": "sendAndWait",
+          "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+          "message": "Generate content again?",
+          "responseType": "customForm",
+          "formFields": {
+            "values": [
+              {
+                "fieldLabel": "Generate again?",
+                "fieldType": "dropdown",
+                "defaultValue": "post",
+                "fieldOptions": {
+                  "values": [
+                    {
+                      "option": "post"
+                    },
+                    {
+                      "option": "image"
+                    }
+                  ]
+                },
+                "requiredField": true
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          -336,
+          272
+        ],
+        "id": "f769301e-4f22-4a0b-8cfc-35a65e549f73",
+        "name": "generate again?",
+        "webhookId": "0b49d5a3-92cd-44da-ae9a-3a31e22cc4f5",
+        "credentials": {
+          "telegramApi": {
+            "id": "VVVfsF0zp9hQn8N8",
+            "name": "Telegram account"
+          }
+        },
+        "disabled": true
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "0d270ab0-a6f3-4930-ad0d-f40eee784d7b",
+                "leftValue": "={{ $json.data.approved }}",
+                "rightValue": true,
+                "operator": {
+                  "type": "boolean",
+                  "operation": "equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          -560,
+          16
+        ],
+        "id": "aa1307e8-e56f-4726-a4b1-88fe923cb665",
+        "name": "is post to fb?",
+        "alwaysOutputData": true,
+        "disabled": true
+      },
+      {
+        "parameters": {
+          "operation": "sendAndWait",
+          "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+          "message": "Upload content to Facebook?",
+          "approvalOptions": {
+            "values": {
+              "approvalType": "double"
+            }
+          },
+          "options": {
+            "limitWaitTime": {
+              "values": {
+                "resumeAmount": 0.5,
+                "resumeUnit": "minutes"
+              }
+            },
+            "appendAttribution": false
+          }
+        },
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          -784,
+          16
+        ],
+        "id": "edaecb66-6322-477f-b5cd-4ac2db751844",
+        "name": "ask if post to fb",
+        "webhookId": "31798ae5-ff3b-4c5a-b948-589df8d5add5",
+        "credentials": {
+          "telegramApi": {
+            "id": "VVVfsF0zp9hQn8N8",
+            "name": "Telegram account"
+          }
+        },
+        "disabled": true
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "31f5a88e-068e-44ae-ae28-db2c6215dbf0",
+                "name": "post",
+                "value": "={{ $('AI Agent').item.json.output.post }}",
+                "type": "string"
+              },
+              {
+                "id": "1ba9a8b8-8566-4559-9b86-6d677346fb70",
+                "name": "=base64Data",
+                "value": "={{ $json.base64Data }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          -560,
+          320
+        ],
+        "id": "27d3a795-e726-4afe-9679-f6a592ff08c7",
+        "name": "Result",
+        "alwaysOutputData": true,
+        "disabled": true
+      },
+      {
+        "parameters": {},
+        "type": "n8n-nodes-base.merge",
+        "typeVersion": 3.2,
+        "position": [
+          -336,
+          64
+        ],
+        "id": "ecc8fa5b-1b13-4cf0-b8e0-54a5f0e7f210",
+        "name": "Merge",
+        "disabled": true
+      },
+      {
+        "parameters": {
+          "operation": "binaryToPropery",
+          "destinationKey": "base64Data",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.extractFromFile",
+        "typeVersion": 1.1,
+        "position": [
+          -784,
+          320
+        ],
+        "id": "5aa38915-f58b-42ae-9486-7bdbe3b03512",
+        "name": "Extract from File",
+        "disabled": true
+      },
+      {
+        "parameters": {
+          "operation": "toBinary",
+          "sourceProperty": "base64Data",
+          "binaryPropertyName": "image",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.convertToFile",
+        "typeVersion": 1.1,
+        "position": [
+          112,
+          64
+        ],
+        "id": "071bb671-27da-4907-89e3-47d03f82bfe1",
+        "name": "Convert to File",
+        "alwaysOutputData": true,
+        "disabled": true
+      },
+      {
+        "parameters": {
+          "fieldToSplitOut": "base64Data",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.splitOut",
+        "typeVersion": 1,
+        "position": [
+          -112,
+          64
+        ],
+        "id": "fb5429d1-9c07-4ab3-9f07-68612579ac7e",
+        "name": "Split Out",
+        "disabled": true
+      }
+    ],
+    "connections": {
+      "Telegram Trigger": {
+        "main": [
+          [
+            {
+              "node": "Prompt Command",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "AI Agent": {
+        "main": [
+          [
+            {
+              "node": "Generate an image",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Google Gemini Chat Model": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Structured Output Parser": {
+        "ai_outputParser": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_outputParser",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Prompt Command": {
+        "main": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Generate an image": {
+        "main": [
+          [
+            {
+              "node": "Send a photo message",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Extract from File",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Send a photo message": {
+        "main": [
+          [
+            {
+              "node": "Form",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "ask if post to fb",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Facebook Graph API": {
+        "main": [
+          [
+            {
+              "node": "Facebook Graph API1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Facebook Graph API3": {
+        "main": [
+          [
+            {
+              "node": "Facebook Graph API2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "generate again?": {
+        "main": [
+          [
+            {
+              "node": "Switch",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "is post to fb?": {
+        "main": [
+          [
+            {
+              "node": "Facebook Graph API3",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Merge",
+              "type": "main",
+              "index": 1
+            }
+          ],
+          [
+            {
+              "node": "generate again?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "ask if post to fb": {
+        "main": [
+          [
+            {
+              "node": "is post to fb?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Result": {
+        "main": [
+          [
+            {
+              "node": "Merge",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Merge": {
+        "main": [
+          [
+            {
+              "node": "Split Out",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Extract from File": {
+        "main": [
+          [
+            {
+              "node": "Result",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Convert to File": {
+        "main": [
+          [
+            {
+              "node": "Facebook Graph API",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Split Out": {
+        "main": [
+          [
+            {
+              "node": "Convert to File",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Lemuel Francisco",
+    "name": "Version 8ea341ad",
+    "description": "",
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-01-19T09:18:29.257Z",
+        "id": 1,
+        "workflowId": "pN6Jbt5NrFY3zg_va39h4",
+        "versionId": "8ea341ad-65d6-42d4-8ec8-bf74007f18c8",
+        "event": "activated",
+        "userId": "38f71c9d-2cc5-453b-8284-e3d5eb508e7c"
+      }
+    ]
+  }
+}

@@ -1,0 +1,422 @@
+{
+  "updatedAt": "2026-01-29T03:56:17.421Z",
+  "createdAt": "2026-01-29T03:42:13.240Z",
+  "id": "TsKbDIIiNPYOqSHE",
+  "name": "Toy Product Market Research",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -200,
+        300
+      ],
+      "id": "manual-trigger",
+      "name": "Run Research"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "daysInterval": 7
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -200,
+        500
+      ],
+      "id": "weekly-trigger",
+      "name": "Weekly Research"
+    },
+    {
+      "parameters": {
+        "jsCode": "const today = new Date();\nconst sheetName = today.toISOString().split('T')[0]; // YYYY-MM-DD format\n\nconst prompt = `You are a ROCKSTAR Lead Market Researcher and Serial Entrepreneur with 25+ years of experience in the toy industry, e-commerce, and product sourcing. You have deep connections with manufacturers in China, USA, and Europe.\n\nConduct comprehensive market research on the TOP 20 TRENDING, MARKETABLE, and BEST-SELLING TOY PRODUCTS currently dominating the internet and e-commerce platforms.\n\n## RESEARCH SOURCES TO CONSIDER:\n- Amazon Best Sellers & Movers and Shakers\n- TikTok viral toy trends\n- YouTube toy review channels\n- Walmart, Target trending toys\n- AliExpress & Alibaba trending products\n- Google Trends for toys\n- Social media buzz and influencer recommendations\n\n## FOR EACH PRODUCT, PROVIDE:\n1. Product Name\n2. Product Category (e.g., Educational, Plush, Action Figures, Building Sets, Electronic, Outdoor, etc.)\n3. Target Age Group\n4. Why It's Trending (viral reason, influencer, seasonal, etc.)\n5. Estimated Wholesale/Manufacturing Cost (USD)\n6. Suggested Retail Price (USD)\n7. Profit Margin Percentage\n8. Competition Level (Low/Medium/High)\n9. Seasonality (Year-round, Holiday, Summer, etc.)\n10. Sourcing Recommendation (Where to source)\n11. Risk Assessment (Low/Medium/High)\n12. Market Potential Score (1-10)\n\n## OUTPUT FORMAT (JSON Array):\n[\n  {\n    \"rank\": 1,\n    \"productName\": \"<product name>\",\n    \"category\": \"<category>\",\n    \"targetAge\": \"<age range>\",\n    \"trendReason\": \"<why trending>\",\n    \"wholesaleCost\": <number>,\n    \"retailPrice\": <number>,\n    \"profitMargin\": <percentage as number>,\n    \"competition\": \"<Low/Medium/High>\",\n    \"seasonality\": \"<when it sells best>\",\n    \"sourcingTip\": \"<where to source>\",\n    \"riskLevel\": \"<Low/Medium/High>\",\n    \"marketScore\": <1-10>,\n    \"quickTip\": \"<one actionable tip for sellers>\"\n  }\n]\n\nProvide exactly 20 products. Respond ONLY with the JSON array, no markdown or extra text.`;\n\nreturn {\n  sheetName,\n  requestBody: {\n    contents: [{\n      parts: [{\n        text: prompt\n      }]\n    }],\n    generationConfig: {\n      temperature: 0.8,\n      maxOutputTokens: 8192\n    }\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        400
+      ],
+      "id": "prepare-research",
+      "name": "Prepare Research Request"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.requestBody) }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        200,
+        400
+      ],
+      "id": "gemini-research",
+      "name": "AI Market Research",
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "fxd1AYCxA3ZIgQAD",
+          "name": "Gemini API Key"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $json;\nconst sheetName = $('Prepare Research Request').item.json.sheetName;\n\nlet text = '';\ntry {\n  text = response.candidates?.[0]?.content?.parts?.[0]?.text || '';\n} catch (e) {\n  return { error: true, message: 'AI research failed', sheetName };\n}\n\nlet products = [];\ntry {\n  // Find JSON array in response\n  const jsonMatch = text.match(/\\[\\s*\\{[\\s\\S]*\\}\\s*\\]/);\n  if (jsonMatch) {\n    products = JSON.parse(jsonMatch[0]);\n  } else {\n    throw new Error('No JSON array found');\n  }\n} catch (e) {\n  return { error: true, message: 'Failed to parse research data', rawText: text.substring(0, 1000), sheetName };\n}\n\n// Return products with sheet name\nreturn {\n  error: false,\n  sheetName,\n  totalProducts: products.length,\n  products,\n  researchDate: new Date().toISOString()\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        400
+      ],
+      "id": "parse-research",
+      "name": "Parse Research Results"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "no-error",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        600,
+        400
+      ],
+      "id": "check-research",
+      "name": "Research Success?"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $json;\nconst sheetName = data.sheetName;\nconst products = data.products;\n\n// Create header row\nconst headers = [\n  'Rank',\n  'Product Name',\n  'Category',\n  'Target Age',\n  'Why Trending',\n  'Wholesale Cost ($)',\n  'Retail Price ($)',\n  'Profit Margin (%)',\n  'Competition',\n  'Seasonality',\n  'Sourcing Tip',\n  'Risk Level',\n  'Market Score',\n  'Quick Tip'\n];\n\n// Create data rows\nconst rows = products.map(p => [\n  p.rank || '',\n  p.productName || '',\n  p.category || '',\n  p.targetAge || '',\n  p.trendReason || '',\n  p.wholesaleCost || '',\n  p.retailPrice || '',\n  p.profitMargin || '',\n  p.competition || '',\n  p.seasonality || '',\n  p.sourcingTip || '',\n  p.riskLevel || '',\n  p.marketScore || '',\n  p.quickTip || ''\n]);\n\n// Add summary row\nconst avgMargin = products.reduce((sum, p) => sum + (p.profitMargin || 0), 0) / products.length;\nconst avgScore = products.reduce((sum, p) => sum + (p.marketScore || 0), 0) / products.length;\n\nrows.push([]);\nrows.push(['SUMMARY', '', '', '', '', '', '', '', '', '', '', '', '', '']);\nrows.push(['Total Products:', products.length, '', '', '', '', 'Avg Margin:', avgMargin.toFixed(1) + '%', '', '', '', 'Avg Score:', avgScore.toFixed(1), '']);\nrows.push(['Research Date:', data.researchDate, '', '', '', '', '', '', '', '', '', '', '', '']);\n\nreturn {\n  sheetName,\n  headers,\n  rows,\n  allValues: [headers, ...rows]\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        300
+      ],
+      "id": "format-for-sheets",
+      "name": "Format for Google Sheets"
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://sheets.googleapis.com/v4/spreadsheets/1o5AA7QDX7fDF9uV-FKlFvOa04YM20z8eQ58ZS1-H53M/values/{{ encodeURIComponent($('Format for Google Sheets').item.json.sheetName) }}!A1:N100",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleSheetsOAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "valueInputOption",
+              "value": "USER_ENTERED"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ values: $('Format for Google Sheets').item.json.allValues }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1100,
+        300
+      ],
+      "id": "create-sheet",
+      "name": "Write to New Sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "QrdVcRSV8DgAcNck",
+          "name": "Google Sheets account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const sheetName = $('Format for Google Sheets').item.json.sheetName;\nconst totalProducts = $('Parse Research Results').item.json.totalProducts;\n\nreturn {\n  success: true,\n  message: `Research complete! ${totalProducts} trending toy products saved to sheet: ${sheetName}`,\n  sheetName,\n  totalProducts,\n  sheetUrl: `https://docs.google.com/spreadsheets/d/1o5AA7QDX7fDF9uV-FKlFvOa04YM20z8eQ58ZS1-H53M/edit#gid=0`\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1300,
+        300
+      ],
+      "id": "success-message",
+      "name": "Success Summary"
+    },
+    {
+      "parameters": {
+        "content": "## Toy Product Market Research\n\n**Purpose:** Research trending, marketable toy products from across the internet.\n\n**AI Role:** Rockstar Lead Market Researcher & Entrepreneur\n\n**Output includes:**\n- Top 20 trending toy products\n- Wholesale costs & retail prices\n- Profit margins\n- Competition & risk analysis\n- Sourcing recommendations\n- Market potential scores\n\n**Saves to:** New Google Sheet with date as sheet name",
+        "height": 340,
+        "width": 320
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        240
+      ],
+      "id": "info-note",
+      "name": "Workflow Info"
+    },
+    {
+      "parameters": {
+        "content": "## Google Sheets Output\n\n**Spreadsheet ID:**\n`1o5AA7QDX7fDF9uV-FKlFvOa04YM20z8eQ58ZS1-H53M`\n\n**Sheet Name:** Date executed (YYYY-MM-DD)\n\n**Columns:**\nRank, Product Name, Category, Target Age, Why Trending, Wholesale Cost, Retail Price, Profit Margin, Competition, Seasonality, Sourcing Tip, Risk Level, Market Score, Quick Tip\n\n**Includes summary row with averages**",
+        "height": 300,
+        "width": 320,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        480
+      ],
+      "id": "sheets-note",
+      "name": "Sheets Info"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://sheets.googleapis.com/v4/spreadsheets/1o5AA7QDX7fDF9uV-FKlFvOa04YM20z8eQ58ZS1-H53M:batchUpdate",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleSheetsOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ requests: [{ addSheet: { properties: { title: $json.sheetName } } }] }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        900,
+        300
+      ],
+      "id": "create-new-sheet",
+      "name": "Create New Sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "QrdVcRSV8DgAcNck",
+          "name": "Google Sheets account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "connections": {
+    "Run Research": {
+      "main": [
+        [
+          {
+            "node": "Prepare Research Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Weekly Research": {
+      "main": [
+        [
+          {
+            "node": "Prepare Research Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Research Request": {
+      "main": [
+        [
+          {
+            "node": "AI Market Research",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Market Research": {
+      "main": [
+        [
+          {
+            "node": "Parse Research Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Research Results": {
+      "main": [
+        [
+          {
+            "node": "Research Success?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Research Success?": {
+      "main": [
+        [
+          {
+            "node": "Format for Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Format for Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Create New Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write to New Sheet": {
+      "main": [
+        [
+          {
+            "node": "Success Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create New Sheet": {
+      "main": [
+        [
+          {
+            "node": "Write to New Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "4e4a652a-6f7d-489a-8a5d-08249e3d600b",
+  "activeVersionId": null,
+  "versionCounter": 4,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-01-29T03:42:13.245Z",
+      "createdAt": "2026-01-29T03:42:13.245Z",
+      "role": "workflow:owner",
+      "workflowId": "TsKbDIIiNPYOqSHE",
+      "projectId": "OZpEMZrnioWDCJsC",
+      "project": {
+        "updatedAt": "2026-01-19T07:38:19.868Z",
+        "createdAt": "2026-01-19T07:37:57.912Z",
+        "id": "OZpEMZrnioWDCJsC",
+        "name": "Lemuel Francisco <freelance.lemuelrfrancisco@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "38f71c9d-2cc5-453b-8284-e3d5eb508e7c",
+        "projectRelations": [
+          {
+            "updatedAt": "2026-01-19T07:37:57.912Z",
+            "createdAt": "2026-01-19T07:37:57.912Z",
+            "userId": "38f71c9d-2cc5-453b-8284-e3d5eb508e7c",
+            "projectId": "OZpEMZrnioWDCJsC",
+            "user": {
+              "updatedAt": "2026-02-04T01:02:15.000Z",
+              "createdAt": "2026-01-19T07:37:57.337Z",
+              "id": "38f71c9d-2cc5-453b-8284-e3d5eb508e7c",
+              "email": "freelance.lemuelrfrancisco@gmail.com",
+              "firstName": "Lemuel",
+              "lastName": "Francisco",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2026-01-19T07:38:36.482Z",
+                "personalization_survey_n8n_version": "2.2.4",
+                "companyType": "personal",
+                "reportedSource": "youtube"
+              },
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "VtHe_WtifdGUhlOw9NMlt",
+                "userActivatedAt": 1768896964872,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1769644632310
+                }
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-02-03",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": null
+}

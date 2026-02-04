@@ -1,0 +1,387 @@
+{
+  "updatedAt": "2026-01-20T07:52:30.905Z",
+  "createdAt": "2026-01-19T07:51:03.517Z",
+  "id": "WWgXy4Hj1l739SyLdqN1C",
+  "name": "Optimize Specific Product",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.prompt }}",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -512,
+        -128
+      ],
+      "id": "4169d48c-d1ec-4325-a4a1-3107ef97e732",
+      "name": "AI Agent",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -496,
+        96
+      ],
+      "id": "f4fd3e15-44e8-4b72-9831-3d88fb1c993a",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "vyE1k8wAmLTyP2Z7",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n\t\"type\": \"object\",\n\t\"properties\": {\n      \"suggestedName\":{\n        \"type\":\"string\"\n      },\n\t\t\"name\": {\n\t\t\t\"type\": \"string\"\n\t\t},\n\t\t\"permalink\": {\n\t\t\t\"type\": \"string\"\n\t\t},\n      \"post\":{\n        \"type\":\"string\"\n      },\n      \"suggestedCategories\":{\n        \"type\":\"string\"\n      }, \n      \"suggestedSEOTags\":{\n        \"type\":\"string\"\n      },\n            \"imagePrompt\":{\n        \"type\":\"string\"\n      }\n\t}\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -368,
+        96
+      ],
+      "id": "ac68ecaf-f405-483e-864e-46c16d31bffa",
+      "name": "Structured Output Parser",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0afa407b-e7e2-465b-bde2-b7273a09e92e",
+              "name": "prompt",
+              "value": "=I want to optimize my Online toy store,{{ $json.name }} - {{ $json.permalink }}. generate a new name suggestion, suggested categories, suggested SEO tags, 1 amazing post description for the website product page. return the result as json with name, suggested name, suggested categories, suggested SEO tags, permalink and the description and prompt for the image of the product",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -736,
+        -128
+      ],
+      "id": "57b6d2a2-8d5e-4e11-ad46-1546874b10ba",
+      "name": "Prompt Command"
+    },
+    {
+      "parameters": {
+        "formTitle": "Optimize Specific Product",
+        "formFields": {
+          "values": [
+            {
+              "fieldName": "productID",
+              "fieldLabel": "Product ID",
+              "placeholder": "Product ID",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.4,
+      "position": [
+        -1088,
+        -112
+      ],
+      "id": "8b73c495-884e-44d1-b376-386c0cd255b2",
+      "name": "On form submission",
+      "webhookId": "55950030-3366-4834-bec2-72b322853aef"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-3-pro-image-preview",
+          "mode": "list",
+          "cachedResultName": "models/gemini-3-pro-image-preview (Nano Banana Pro)"
+        },
+        "prompt": "={{ $json.output.imagePrompt }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        -160,
+        -128
+      ],
+      "id": "01d602f2-83e0-4e52-9a34-e55de63c2a40",
+      "name": "Generate an image",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "vyE1k8wAmLTyP2Z7",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "productId": "={{ $json.productID }}"
+      },
+      "type": "n8n-nodes-base.wooCommerce",
+      "typeVersion": 1,
+      "position": [
+        -880,
+        -112
+      ],
+      "id": "efc36a43-b72c-4e5f-960d-be45e1e1bf5b",
+      "name": "Get 5 Products",
+      "credentials": {
+        "wooCommerceApi": {
+          "id": "uGpC30yt9WNfKtA1",
+          "name": "WooCommerce account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ $('AI Agent').item.json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        128,
+        128
+      ],
+      "id": "2e864d8d-e573-4937-a594-0b2d1d92af37",
+      "name": "Result1"
+    },
+    {
+      "parameters": {
+        "operation": "completion",
+        "respondWith": "returnBinary",
+        "completionTitle": "=Your Social media post for {{ $('On form submission').item.json.url }} is ready.",
+        "completionMessage": "={{ $json.post }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.4,
+      "position": [
+        256,
+        -128
+      ],
+      "id": "6e877c32-4908-4cb4-a829-c979764d8f9d",
+      "name": "Form",
+      "webhookId": "36269313-9915-4f2d-990b-4a9a2d93c2d0",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "31f5a88e-068e-44ae-ae28-db2c6215dbf0",
+              "name": "post",
+              "value": "={{ $('AI Agent').item.json.output.post }}",
+              "type": "string"
+            },
+            {
+              "id": "05afa3f7-c9fd-471b-a7ea-36fa276c9958",
+              "name": "image",
+              "value": "={{ $('Generate an image').item.binary.data }}",
+              "type": "binary"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        48,
+        -128
+      ],
+      "id": "9acced62-d1ba-4061-9b27-27e7f1063f0f",
+      "name": "Result",
+      "alwaysOutputData": true
+    }
+  ],
+  "connections": {
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Generate an image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prompt Command": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Get 5 Products",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate an image": {
+      "main": [
+        [
+          {
+            "node": "Result1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get 5 Products": {
+      "main": [
+        [
+          {
+            "node": "Prompt Command",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Result": {
+      "main": [
+        [
+          {
+            "node": "Form",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "9f794ef6-71fa-437d-9346-820a09acb789",
+  "activeVersionId": null,
+  "versionCounter": 4,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-01-19T07:51:03.520Z",
+      "createdAt": "2026-01-19T07:51:03.520Z",
+      "role": "workflow:owner",
+      "workflowId": "WWgXy4Hj1l739SyLdqN1C",
+      "projectId": "OZpEMZrnioWDCJsC",
+      "project": {
+        "updatedAt": "2026-01-19T07:38:19.868Z",
+        "createdAt": "2026-01-19T07:37:57.912Z",
+        "id": "OZpEMZrnioWDCJsC",
+        "name": "Lemuel Francisco <freelance.lemuelrfrancisco@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "38f71c9d-2cc5-453b-8284-e3d5eb508e7c",
+        "projectRelations": [
+          {
+            "updatedAt": "2026-01-19T07:37:57.912Z",
+            "createdAt": "2026-01-19T07:37:57.912Z",
+            "userId": "38f71c9d-2cc5-453b-8284-e3d5eb508e7c",
+            "projectId": "OZpEMZrnioWDCJsC",
+            "user": {
+              "updatedAt": "2026-02-04T01:02:15.000Z",
+              "createdAt": "2026-01-19T07:37:57.337Z",
+              "id": "38f71c9d-2cc5-453b-8284-e3d5eb508e7c",
+              "email": "freelance.lemuelrfrancisco@gmail.com",
+              "firstName": "Lemuel",
+              "lastName": "Francisco",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2026-01-19T07:38:36.482Z",
+                "personalization_survey_n8n_version": "2.2.4",
+                "companyType": "personal",
+                "reportedSource": "youtube"
+              },
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "VtHe_WtifdGUhlOw9NMlt",
+                "userActivatedAt": 1768896964872,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1769644632310
+                }
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-02-03",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": null
+}
