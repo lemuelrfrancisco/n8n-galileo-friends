@@ -708,7 +708,7 @@
     {
       "parameters": {
         "chatId": "={{ $('Prepare Product Data').item.json.chatId }}",
-        "text": "=\u26a0\ufe0f Product ID {{ $('Prepare Product Data').item.json.productId }} ({{ $('Prepare Product Data').item.json.productName }}) has already been processed. Skipping to avoid duplicate content.",
+        "text": "=⚠️ Product ID {{ $('Prepare Product Data').item.json.productId }} ({{ $('Prepare Product Data').item.json.productName }}) has already been processed. Skipping to avoid duplicate content.",
         "additionalFields": {
           "appendAttribution": false
         }
@@ -1134,7 +1134,7 @@
     {
       "parameters": {
         "chatId": "={{ $json.chatId }}",
-        "text": "\ud83d\udccb <b>Bot Commands:</b>\n\n<b>Marketing:</b>\n<code>market</code> - Generate marketing for 5 recent products\n<code>market [ID]</code> - Generate marketing for specific product\n\n<b>Products:</b>\n<code>list</code> - List 5 recent products\n<code>list [N]</code> - List N products\n<code>list all</code> - List all products\n<code>get [ID]</code> - Get specific product details\n\n<b>Content Generation:</b>\n<code>generate [ID]</code> - Generate content via sub-workflow\n\n<code>help</code> - Show this help message\n\n\ud83d\udca1 Products are tracked to avoid duplicate marketing generation.",
+        "text": "📋 <b>Bot Commands:</b>\n\n<b>Marketing:</b>\n<code>market</code> - Generate marketing for 5 recent products\n<code>market [ID]</code> - Generate marketing for specific product\n\n<b>Products:</b>\n<code>list</code> - List 5 recent products\n<code>list [N]</code> - List N products\n<code>list all</code> - List all products\n<code>get [ID]</code> - Get specific product details\n\n<b>Content Generation:</b>\n<code>generate [ID]</code> - Generate content via sub-workflow\n\n<code>help</code> - Show this help message\n\n💡 Products are tracked to avoid duplicate marketing generation.",
         "additionalFields": {
           "appendAttribution": false,
           "parse_mode": "HTML"
@@ -1159,7 +1159,7 @@
     {
       "parameters": {
         "chatId": "={{ $json.chatId }}",
-        "text": "\u2753 Unknown command. Type <code>help</code> to see available commands.",
+        "text": "❓ Unknown command. Type <code>help</code> to see available commands.",
         "additionalFields": {
           "appendAttribution": false,
           "parse_mode": "HTML"
@@ -1184,7 +1184,7 @@
     {
       "parameters": {
         "chatId": "={{ $json.message.chat.id }}",
-        "text": "\u274c Invalid user. Access denied.",
+        "text": "❌ Invalid user. Access denied.",
         "additionalFields": {}
       },
       "type": "n8n-nodes-base.telegram",
@@ -1307,7 +1307,7 @@
     {
       "parameters": {
         "chatId": "={{ $('Parse Marketing Response').item.json.chatId }}",
-        "text": "=\ud83d\ude80 <b>MARKETING CONTENT GENERATED</b> \ud83d\ude80\n\n\ud83d\udce6 <b>Product:</b> {{ $('Parse Marketing Response').item.json.productName }}\n\n\ud83d\udd17 <b>Product URL:</b> {{ $('Parse Marketing Response').item.json.productUrl }}",
+        "text": "=🚀 <b>MARKETING CONTENT GENERATED</b> 🚀\n\n📦 <b>Product:</b> {{ $('Parse Marketing Response').item.json.productName }}\n\n🔗 <b>Product URL:</b> {{ $('Parse Marketing Response').item.json.productUrl }}",
         "additionalFields": {
           "appendAttribution": false,
           "parse_mode": "HTML"
@@ -1459,7 +1459,7 @@
     {
       "parameters": {
         "chatId": "={{ $('Parse Marketing Response').item.json.chatId }}",
-        "text": "=\ud83c\udfaf <b>Headline:</b>\n{{ $('Parse Marketing Response').item.json.headline }}",
+        "text": "=🎯 <b>Headline:</b>\n{{ $('Parse Marketing Response').item.json.headline }}",
         "additionalFields": {
           "appendAttribution": false,
           "parse_mode": "HTML"
@@ -1484,7 +1484,7 @@
     {
       "parameters": {
         "chatId": "={{ $('Parse Marketing Response').item.json.chatId }}",
-        "text": "=\ud83d\udcdd <b>Marketing Description:</b>\n{{ $('Parse Marketing Response').item.json.description }}",
+        "text": "=📝 <b>Marketing Description:</b>\n{{ $('Parse Marketing Response').item.json.description }}",
         "additionalFields": {
           "appendAttribution": false,
           "parse_mode": "HTML"
@@ -1509,7 +1509,7 @@
     {
       "parameters": {
         "chatId": "={{ $('Parse Marketing Response').item.json.chatId }}",
-        "text": "=\ud83d\udcf1 <b>Social Media Post:</b>\n{{ $('Parse Marketing Response').item.json.socialPost }}",
+        "text": "=📱 <b>Social Media Post:</b>\n{{ $('Parse Marketing Response').item.json.socialPost }}",
         "additionalFields": {
           "appendAttribution": false,
           "parse_mode": "HTML"
@@ -1534,7 +1534,7 @@
     {
       "parameters": {
         "chatId": "={{ $('Parse Marketing Response').item.json.chatId }}",
-        "text": "=\ud83d\udcf2 <b>Post to Social Media?</b>\n\nWould you like to post the marketing content for <b>{{ $('Parse Marketing Response').item.json.productName }}</b> to Facebook &amp; Instagram?\n\n\ud83c\udfaf Headline: {{ $('Parse Marketing Response').item.json.headline }}\n\ud83d\udd17 {{ $('Parse Marketing Response').item.json.productUrl }}",
+        "text": "=📲 <b>Post to Social Media?</b>\n\nWould you like to post the marketing content for <b>{{ $('Parse Marketing Response').item.json.productName }}</b> to Facebook &amp; Instagram?\n\n🎯 Headline: {{ $('Parse Marketing Response').item.json.headline }}\n🔗 {{ $('Parse Marketing Response').item.json.productUrl }}",
         "additionalFields": {
           "appendAttribution": false,
           "parse_mode": "HTML"
@@ -1546,13 +1546,13 @@
               "row": {
                 "buttons": [
                   {
-                    "text": "\u2705 Yes, Post to FB & IG",
+                    "text": "✅ Yes, Post to FB & IG",
                     "additionalFields": {
                       "callback_data": "post_social_yes_{{ $('Parse Marketing Response').item.json.productId }}"
                     }
                   },
                   {
-                    "text": "\u274c No, Skip",
+                    "text": "❌ No, Skip",
                     "additionalFields": {
                       "callback_data": "post_social_no_{{ $('Parse Marketing Response').item.json.productId }}"
                     }
@@ -2903,7 +2903,7 @@
       {
         "parameters": {
           "chatId": "={{ $('Prepare Product Data').item.json.chatId }}",
-          "text": "=\u26a0\ufe0f Product ID {{ $('Prepare Product Data').item.json.productId }} ({{ $('Prepare Product Data').item.json.productName }}) has already been processed. Skipping to avoid duplicate content.",
+          "text": "=⚠️ Product ID {{ $('Prepare Product Data').item.json.productId }} ({{ $('Prepare Product Data').item.json.productName }}) has already been processed. Skipping to avoid duplicate content.",
           "additionalFields": {
             "appendAttribution": false
           }
@@ -3329,7 +3329,7 @@
       {
         "parameters": {
           "chatId": "={{ $json.chatId }}",
-          "text": "\ud83d\udccb <b>Bot Commands:</b>\n\n<b>Marketing:</b>\n<code>market</code> - Generate marketing for 5 recent products\n<code>market [ID]</code> - Generate marketing for specific product\n\n<b>Products:</b>\n<code>list</code> - List 5 recent products\n<code>list [N]</code> - List N products\n<code>list all</code> - List all products\n<code>get [ID]</code> - Get specific product details\n\n<b>Content Generation:</b>\n<code>generate [ID]</code> - Generate content via sub-workflow\n\n<code>help</code> - Show this help message\n\n\ud83d\udca1 Products are tracked to avoid duplicate marketing generation.",
+          "text": "📋 <b>Bot Commands:</b>\n\n<b>Marketing:</b>\n<code>market</code> - Generate marketing for 5 recent products\n<code>market [ID]</code> - Generate marketing for specific product\n\n<b>Products:</b>\n<code>list</code> - List 5 recent products\n<code>list [N]</code> - List N products\n<code>list all</code> - List all products\n<code>get [ID]</code> - Get specific product details\n\n<b>Content Generation:</b>\n<code>generate [ID]</code> - Generate content via sub-workflow\n\n<code>help</code> - Show this help message\n\n💡 Products are tracked to avoid duplicate marketing generation.",
           "additionalFields": {
             "appendAttribution": false,
             "parse_mode": "HTML"
@@ -3354,7 +3354,7 @@
       {
         "parameters": {
           "chatId": "={{ $json.chatId }}",
-          "text": "\u2753 Unknown command. Type <code>help</code> to see available commands.",
+          "text": "❓ Unknown command. Type <code>help</code> to see available commands.",
           "additionalFields": {
             "appendAttribution": false,
             "parse_mode": "HTML"
@@ -3379,7 +3379,7 @@
       {
         "parameters": {
           "chatId": "={{ $json.message.chat.id }}",
-          "text": "\u274c Invalid user. Access denied.",
+          "text": "❌ Invalid user. Access denied.",
           "additionalFields": {}
         },
         "type": "n8n-nodes-base.telegram",
@@ -3502,7 +3502,7 @@
       {
         "parameters": {
           "chatId": "={{ $('Parse Marketing Response').item.json.chatId }}",
-          "text": "=\ud83d\ude80 <b>MARKETING CONTENT GENERATED</b> \ud83d\ude80\n\n\ud83d\udce6 <b>Product:</b> {{ $('Parse Marketing Response').item.json.productName }}\n\n\ud83d\udd17 <b>Product URL:</b> {{ $('Parse Marketing Response').item.json.productUrl }}",
+          "text": "=🚀 <b>MARKETING CONTENT GENERATED</b> 🚀\n\n📦 <b>Product:</b> {{ $('Parse Marketing Response').item.json.productName }}\n\n🔗 <b>Product URL:</b> {{ $('Parse Marketing Response').item.json.productUrl }}",
           "additionalFields": {
             "appendAttribution": false,
             "parse_mode": "HTML"
@@ -3654,7 +3654,7 @@
       {
         "parameters": {
           "chatId": "={{ $('Parse Marketing Response').item.json.chatId }}",
-          "text": "=\ud83c\udfaf <b>Headline:</b>\n{{ $('Parse Marketing Response').item.json.headline }}",
+          "text": "=🎯 <b>Headline:</b>\n{{ $('Parse Marketing Response').item.json.headline }}",
           "additionalFields": {
             "appendAttribution": false,
             "parse_mode": "HTML"
@@ -3679,7 +3679,7 @@
       {
         "parameters": {
           "chatId": "={{ $('Parse Marketing Response').item.json.chatId }}",
-          "text": "=\ud83d\udcdd <b>Marketing Description:</b>\n{{ $('Parse Marketing Response').item.json.description }}",
+          "text": "=📝 <b>Marketing Description:</b>\n{{ $('Parse Marketing Response').item.json.description }}",
           "additionalFields": {
             "appendAttribution": false,
             "parse_mode": "HTML"
@@ -3704,7 +3704,7 @@
       {
         "parameters": {
           "chatId": "={{ $('Parse Marketing Response').item.json.chatId }}",
-          "text": "=\ud83d\udcf1 <b>Social Media Post:</b>\n{{ $('Parse Marketing Response').item.json.socialPost }}",
+          "text": "=📱 <b>Social Media Post:</b>\n{{ $('Parse Marketing Response').item.json.socialPost }}",
           "additionalFields": {
             "appendAttribution": false,
             "parse_mode": "HTML"
@@ -3729,7 +3729,7 @@
       {
         "parameters": {
           "chatId": "={{ $('Parse Marketing Response').item.json.chatId }}",
-          "text": "=\ud83d\udcf2 <b>Post to Social Media?</b>\n\nWould you like to post the marketing content for <b>{{ $('Parse Marketing Response').item.json.productName }}</b> to Facebook &amp; Instagram?\n\n\ud83c\udfaf Headline: {{ $('Parse Marketing Response').item.json.headline }}\n\ud83d\udd17 {{ $('Parse Marketing Response').item.json.productUrl }}",
+          "text": "=📲 <b>Post to Social Media?</b>\n\nWould you like to post the marketing content for <b>{{ $('Parse Marketing Response').item.json.productName }}</b> to Facebook &amp; Instagram?\n\n🎯 Headline: {{ $('Parse Marketing Response').item.json.headline }}\n🔗 {{ $('Parse Marketing Response').item.json.productUrl }}",
           "additionalFields": {
             "appendAttribution": false,
             "parse_mode": "HTML"
@@ -3741,13 +3741,13 @@
                 "row": {
                   "buttons": [
                     {
-                      "text": "\u2705 Yes, Post to FB & IG",
+                      "text": "✅ Yes, Post to FB & IG",
                       "additionalFields": {
                         "callback_data": "post_social_yes_{{ $('Parse Marketing Response').item.json.productId }}"
                       }
                     },
                     {
-                      "text": "\u274c No, Skip",
+                      "text": "❌ No, Skip",
                       "additionalFields": {
                         "callback_data": "post_social_no_{{ $('Parse Marketing Response').item.json.productId }}"
                       }

@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-02-04T03:39:34.263Z",
+  "updatedAt": "2026-02-04T04:05:24.787Z",
   "createdAt": "2026-02-04T02:42:36.799Z",
   "id": "Q3OSjcevswTANzho",
   "name": "Export n8n to GitHub",
@@ -173,7 +173,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Gather all input items\nconst items = $input.all();\n\n// Get config\nconst config = $('Set Config').first().json;\n\n// Get all workflow items from Fetch Full Workflow\nconst workflowItems = $('Fetch Full Workflow').all();\n\n// Get credentials data (may be empty if the API call failed)\nlet credentialsData = [];\ntry {\n  const credResult = $('Fetch Credentials').first().json;\n  if (credResult && credResult.data) {\n    credentialsData = credResult.data;\n  }\n} catch (e) {\n  // Credentials fetch failed, continue with empty\n}\n\n// Build tree entries for workflows\nconst treeEntries = [];\n\nfor (const item of workflowItems) {\n  const wf = item.json;\n  \n  // Sanitize workflow name for filename\n  const sanitized = (wf.name || 'unnamed')\n    .toLowerCase()\n    .replace(/[^a-z0-9\\-_ ]/g, '')\n    .replace(/\\s+/g, '-')\n    .replace(/-+/g, '-')\n    .replace(/^-|-$/g, '')\n    .substring(0, 80);\n  \n  const filename = `workflows/${sanitized}-${wf.id}.json`;\n  \n  // Remove sensitive/ephemeral fields\n  const cleanWf = { ...wf };\n  delete cleanWf.n8nApiUrl;\n  delete cleanWf.n8nApiKey;\n  \n  treeEntries.push({\n    path: filename,\n    mode: '100644',\n    type: 'blob',\n    content: JSON.stringify(cleanWf, null, 2)\n  });\n}\n\n// Build credentials manifest\nconst manifest = {\n  exportedAt: new Date().toISOString(),\n  count: credentialsData.length,\n  note: 'Metadata only - no secrets included',\n  credentials: credentialsData.map(c => ({\n    id: c.id,\n    name: c.name,\n    type: c.type,\n    createdAt: c.createdAt,\n    updatedAt: c.updatedAt\n  }))\n};\n\ntreeEntries.push({\n  path: 'credentials/credentials-manifest.json',\n  mode: '100644',\n  type: 'blob',\n  content: JSON.stringify(manifest, null, 2)\n});\n\nreturn [{\n  json: {\n    treeEntries,\n    workflowCount: workflowItems.length,\n    credentialCount: credentialsData.length,\n    githubOwner: config.githubOwner,\n    githubRepo: config.githubRepo,\n    githubBranch: config.githubBranch,\n    githubPat: config.githubPat\n  }\n}];"
+        "jsCode": "// Gather all input items\nconst items = $input.all();\n\n// Get config\nconst config = $('Set Config').first().json;\n\n// Get all workflow items from Fetch Full Workflow\nconst workflowItems = $('Fetch Full Workflow').all();\n\n// Get credentials data (may be empty if the API call failed)\nlet credentialsData = [];\ntry {\n  const credResult = $('Fetch Credentials').first().json;\n  if (credResult && credResult.data) {\n    credentialsData = credResult.data;\n  }\n} catch (e) {\n  // Credentials fetch failed, continue with empty\n}\n\n// Redact secrets from a string\nfunction redactSecrets(str) {\n  // GitHub PATs\n  str = str.replace(/github_pat_[A-Za-z0-9_]+/g, 'REDACTED_GITHUB_PAT');\n  // Generic tokens (ghp_, gho_, ghu_, ghs_, ghr_)\n  str = str.replace(/gh[pousr]_[A-Za-z0-9]{36,}/g, 'REDACTED_GH_TOKEN');\n  // JWTs (three base64 segments separated by dots)\n  str = str.replace(/eyJ[A-Za-z0-9_-]{20,}\\.eyJ[A-Za-z0-9_-]{20,}\\.[A-Za-z0-9_-]{20,}/g, 'REDACTED_JWT');\n  return str;\n}\n\n// Build tree entries for workflows\nconst treeEntries = [];\n\nfor (const item of workflowItems) {\n  const wf = item.json;\n  \n  // Sanitize workflow name for filename\n  const sanitized = (wf.name || 'unnamed')\n    .toLowerCase()\n    .replace(/[^a-z0-9\\-_ ]/g, '')\n    .replace(/\\s+/g, '-')\n    .replace(/-+/g, '-')\n    .replace(/^-|-$/g, '')\n    .substring(0, 80);\n  \n  const filename = `workflows/${sanitized}-${wf.id}.json`;\n  \n  // Stringify then redact secrets\n  const rawJson = JSON.stringify(wf, null, 2);\n  const safeJson = redactSecrets(rawJson);\n  \n  treeEntries.push({\n    path: filename,\n    mode: '100644',\n    type: 'blob',\n    content: safeJson\n  });\n}\n\n// Build credentials manifest\nconst manifest = {\n  exportedAt: new Date().toISOString(),\n  count: credentialsData.length,\n  note: 'Metadata only - no secrets included',\n  credentials: credentialsData.map(c => ({\n    id: c.id,\n    name: c.name,\n    type: c.type,\n    createdAt: c.createdAt,\n    updatedAt: c.updatedAt\n  }))\n};\n\ntreeEntries.push({\n  path: 'credentials/credentials-manifest.json',\n  mode: '100644',\n  type: 'blob',\n  content: JSON.stringify(manifest, null, 2)\n});\n\nreturn [{\n  json: {\n    treeEntries,\n    workflowCount: workflowItems.length,\n    credentialCount: credentialsData.length,\n    githubOwner: config.githubOwner,\n    githubRepo: config.githubRepo,\n    githubBranch: config.githubBranch,\n    githubPat: config.githubPat\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -285,7 +285,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ message: 'n8n export: ' + $('Prepare Tree Request').item.json.workflowCount + ' workflows, ' + $('Prepare Tree Request').item.json.credentialCount + ' credentials \u2014 ' + new Date().toISOString(), tree: $json.sha, parents: [$('Prepare Tree Request').item.json.parentCommitSha] }) }}",
+        "jsonBody": "={{ JSON.stringify({ message: 'n8n export: ' + $('Prepare Tree Request').item.json.workflowCount + ' workflows, ' + $('Prepare Tree Request').item.json.credentialCount + ' credentials — ' + new Date().toISOString(), tree: $json.sha, parents: [$('Prepare Tree Request').item.json.parentCommitSha] }) }}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -358,7 +358,7 @@
     },
     {
       "parameters": {
-        "content": "### Path A: Workflows\nFetch list \u2192 Split IDs \u2192 Fetch each full workflow\n\n### Path B: Credentials\nFetch credential metadata (continueOnFail)",
+        "content": "### Path A: Workflows\nFetch list → Split IDs → Fetch each full workflow\n\n### Path B: Credentials\nFetch credential metadata (continueOnFail)",
         "width": 300,
         "height": 180
       },
@@ -388,7 +388,7 @@
     },
     {
       "parameters": {
-        "content": "### GitHub Git Data API\n1. Get branch ref \u2192 commit SHA\n2. Get commit \u2192 base_tree SHA\n3. Create tree (all files)\n4. Create commit\n5. Update ref \u2192 done!",
+        "content": "### GitHub Git Data API\n1. Get branch ref → commit SHA\n2. Get commit → base_tree SHA\n3. Create tree (all files)\n4. Create commit\n5. Update ref → done!",
         "width": 300,
         "height": 140
       },
@@ -571,9 +571,9 @@
   "staticData": null,
   "meta": null,
   "pinData": null,
-  "versionId": "18e13142-b977-4589-a64e-85d5a8efa6ab",
+  "versionId": "79ac1f3f-5a63-4a38-9bf8-b688fd38274f",
   "activeVersionId": null,
-  "versionCounter": 5,
+  "versionCounter": 7,
   "triggerCount": 0,
   "shared": [
     {

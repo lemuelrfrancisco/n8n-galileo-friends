@@ -226,7 +226,7 @@
     {
       "parameters": {
         "chatId": "={{ $('When Executed by Another Workflow').item.json.chatId }}",
-        "text": "Generating your request. Please wait\u2026",
+        "text": "Generating your request. Please wait…",
         "additionalFields": {
           "appendAttribution": false
         }
@@ -648,7 +648,7 @@
       {
         "parameters": {
           "chatId": "={{ $('When Executed by Another Workflow').item.json.chatId }}",
-          "text": "Generating your request. Please wait\u2026",
+          "text": "Generating your request. Please wait…",
           "additionalFields": {
             "appendAttribution": false
           }
