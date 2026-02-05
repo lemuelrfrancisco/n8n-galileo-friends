@@ -1,0 +1,1321 @@
+{
+  "updatedAt": "2026-02-04T15:45:04.637Z",
+  "createdAt": "2026-02-04T15:45:04.637Z",
+  "id": "RNXmb87hGtinA79y",
+  "name": "WooCommerce Marketing Generator copy",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message",
+          "callback_query"
+        ],
+        "additionalFields": {},
+        "path": "5decb552-700b-47ac-be61-7048d283d94d"
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -400,
+        0
+      ],
+      "id": "8739d511-8d4a-4af9-b0a7-4494afa8ec52",
+      "name": "Telegram Trigger",
+      "webhookId": "5decb552-700b-47ac-be61-7048d283d94d",
+      "credentials": {
+        "telegramApi": {
+          "id": "VVVfsF0zp9hQn8N8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 24
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -400,
+        208
+      ],
+      "id": "4dfecb13-5822-4b5c-ab1e-aed294f9773d",
+      "name": "Daily Schedule"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "user-check",
+              "leftValue": 8430120206,
+              "rightValue": "={{ $json.message?.chat?.id || $json.callback_query?.message?.chat?.id }}",
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -208,
+        0
+      ],
+      "id": "a07a25e9-4863-4f61-a3b0-b9c73a2a6106",
+      "name": "Validate User"
+    },
+    {
+      "parameters": {
+        "jsCode": "const msg = $json.message;\nconst cbq = $json.callback_query;\n\nif (cbq) {\n  const data = cbq.data || '';\n  const chatId = cbq.message?.chat?.id || 0;\n  const callbackQueryId = cbq.id;\n\n  if (data.startsWith('post_yes_')) {\n    return {\n      command: 'post_social',\n      productId: data.replace('post_yes_', ''),\n      chatId,\n      callbackQueryId,\n      source: 'callback'\n    };\n  } else if (data.startsWith('post_no_')) {\n    return {\n      command: 'skip_social',\n      productId: data.replace('post_no_', ''),\n      chatId,\n      callbackQueryId,\n      source: 'callback'\n    };\n  }\n\n  return {\n    command: 'unknown',\n    productId: '',\n    chatId,\n    callbackQueryId,\n    source: 'callback'\n  };\n}\n\nconst text = msg?.text?.toLowerCase() || '';\nconst parts = text.split(' ');\nconst command = parts[0];\nconst productId = parts[1] || '';\nconst chatId = msg?.chat?.id || 0;\n\nreturn {\n  command,\n  productId,\n  chatId,\n  callbackQueryId: '',\n  source: 'telegram'\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "569d9a67-2956-48eb-a64f-80ceaff51973",
+      "name": "Parse Command"
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\n  command: 'market',\n  productId: '',\n  chatId: 8430120206,\n  callbackQueryId: '',\n  source: 'schedule'\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        208
+      ],
+      "id": "1ea0039e-f5db-4dd7-9ef4-92aee66df772",
+      "name": "Set Schedule Context"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.command }}",
+                    "rightValue": "market",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "market-cmd"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Market"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.command }}",
+                    "rightValue": "help",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "help-cmd"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Help"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.command }}",
+                    "rightValue": "post_social",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "post-social-cmd"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Post Social"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.command }}",
+                    "rightValue": "skip_social",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "skip-social-cmd"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Skip Social"
+            }
+          ]
+        },
+        "options": {
+          "allMatchingOutputs": false
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        112
+      ],
+      "id": "b3310cbf-d7e6-412c-af3e-8707bbee6236",
+      "name": "Command Router"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "has-product-id",
+              "leftValue": "={{ $json.productId }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        400,
+        0
+      ],
+      "id": "ec89bbfd-9e2a-4d0a-9625-344388843439",
+      "name": "Has Product ID?"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "productId": "={{ $json.productId }}"
+      },
+      "type": "n8n-nodes-base.wooCommerce",
+      "typeVersion": 1,
+      "position": [
+        608,
+        -96
+      ],
+      "id": "8f245439-316c-48d6-b105-e96c307fb89b",
+      "name": "Get Specific Product",
+      "credentials": {
+        "wooCommerceApi": {
+          "id": "uGpC30yt9WNfKtA1",
+          "name": "WooCommerce account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": 5,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.wooCommerce",
+      "typeVersion": 1,
+      "position": [
+        608,
+        112
+      ],
+      "id": "a0694851-39dc-49bf-bae2-07e6f464ea96",
+      "name": "Get Recent Products",
+      "credentials": {
+        "wooCommerceApi": {
+          "id": "uGpC30yt9WNfKtA1",
+          "name": "WooCommerce account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const product = $json;\nconst chatId = $('Parse Command').first()?.json?.chatId || $('Set Schedule Context').first()?.json?.chatId || 8430120206;\n\nreturn {\n  productId: product.id,\n  productName: product.name,\n  productDescription: product.description?.replace(/<[^>]*>/g, '') || '',\n  productShortDescription: product.short_description?.replace(/<[^>]*>/g, '') || '',\n  productPrice: product.price,\n  productRegularPrice: product.regular_price,\n  productSalePrice: product.sale_price,\n  productCategories: product.categories?.map(c => c.name).join(', ') || '',\n  productTags: product.tags?.map(t => t.name).join(', ') || '',\n  productImage: product.images?.[0]?.src || '',\n  productUrl: product.permalink,\n  chatId\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        0
+      ],
+      "id": "3fbc1590-7776-4775-951a-6cbfb6c6c1e3",
+      "name": "Prepare Product Data"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1k6dLR39LQqj7igNv5LhF34jm26zfXBx3XpwC_Ld0yVw",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "ProcessedProducts",
+          "mode": "name"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "ProductID",
+              "lookupValue": "={{ $json.productId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1008,
+        0
+      ],
+      "id": "f2226625-7a97-49a9-8d8a-b323d86461a4",
+      "name": "Check If Processed",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "QrdVcRSV8DgAcNck",
+          "name": "Google Sheets account"
+        }
+      },
+      "disabled": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "not-processed",
+              "leftValue": "={{ $json.ProductID }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1200,
+        0
+      ],
+      "id": "4793c773-77bf-457e-8ecc-7dab120b446a",
+      "name": "Not Processed Yet?"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googlePalmApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [{ text: 'You are a Rockstar and expert Digital Marketing specialist. Create compelling marketing content for this WooCommerce product:\\n\\n**Product Name:** ' + $('Prepare Product Data').item.json.productName + '\\n**Description:** ' + $('Prepare Product Data').item.json.productDescription + '\\n**Price:** ' + $('Prepare Product Data').item.json.productPrice + '\\n**Categories:** ' + $('Prepare Product Data').item.json.productCategories + '\\n**Tags:** ' + $('Prepare Product Data').item.json.productTags + '\\n\\nGenerate the following:\\n\\n1. **MARKETING HEADLINE** (max 60 characters, attention-grabbing)\\n2. **MARKETING DESCRIPTION** (150-200 words, persuasive, highlights benefits, includes call-to-action)\\n3. **SOCIAL MEDIA POST** (for Facebook/Instagram, with relevant emojis and hashtags)\\n4. **VIDEO SCRIPT** (30-second promotional video script with scenes and voiceover)\\n5. **IMAGE PROMPT** (detailed prompt for AI image generation showing the product in an appealing marketing context)\\n\\nFormat your response as JSON with keys: headline, description, socialPost, videoScript, imagePrompt' }] }], generationConfig: { temperature: 0.8, maxOutputTokens: 2048 } }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1408,
+        -96
+      ],
+      "id": "b79d242d-b61b-4dd2-9c46-d172de3fc807",
+      "name": "Generate Marketing Content",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "vyE1k8wAmLTyP2Z7",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json;\n// Handle Gemini REST API response format: candidates[0].content.parts[0].text\nconst response = raw.candidates?.[0]?.content?.parts?.[0]?.text || raw.text || raw.content || JSON.stringify(raw);\nlet parsed;\n\ntry {\n  const jsonMatch = response.match(/\\{[\\s\\S]*\\}/);\n  if (jsonMatch) {\n    parsed = JSON.parse(jsonMatch[0]);\n  } else {\n    parsed = {\n      headline: 'Marketing Content Generated',\n      description: response,\n      socialPost: response.substring(0, 280),\n      videoScript: 'Please see the full description for video content ideas.',\n      imagePrompt: 'Product marketing image'\n    };\n  }\n} catch (e) {\n  parsed = {\n    headline: 'Marketing Content Generated',\n    description: response,\n    socialPost: response.substring(0, 280),\n    videoScript: 'Please see the full description for video content ideas.',\n    imagePrompt: 'Product marketing image'\n  };\n}\n\nconst productData = $('Prepare Product Data').item.json;\n\nreturn {\n  ...parsed,\n  productId: productData.productId,\n  productName: productData.productName,\n  productUrl: productData.productUrl,\n  productImage: productData.productImage,\n  chatId: productData.chatId\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1600,
+        -96
+      ],
+      "id": "db857eb1-1ba8-4cf6-9ff4-0b1d4eae78d7",
+      "name": "Parse Marketing Response"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googlePalmApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ instances: [{ prompt: ($json.imagePrompt || 'product marketing image') + '. Professional product photography style, high quality, commercial advertising, clean background, perfect lighting, marketing campaign quality.' }], parameters: { sampleCount: 1 } }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1808,
+        -96
+      ],
+      "id": "3bba3899-daf7-4d4f-bcbf-d7df8f802f80",
+      "name": "Generate Marketing Image",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "vyE1k8wAmLTyP2Z7",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1k6dLR39LQqj7igNv5LhF34jm26zfXBx3XpwC_Ld0yVw",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "ProcessedProducts",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ProductID": "={{ $('Parse Marketing Response').item.json.productId }}",
+            "ProductName": "={{ $('Parse Marketing Response').item.json.productName }}",
+            "ProcessedAt": "={{ $now.toISO() }}",
+            "Headline": "={{ $('Parse Marketing Response').item.json.headline }}",
+            "ProductURL": "={{ $('Parse Marketing Response').item.json.productUrl }}",
+            "DateTimeCreated": "={{ $now.format('yyyy-MM-dd HH:mm:ss') }}",
+            "SocialPost": "={{ $('Parse Marketing Response').item.json.socialPost }}",
+            "ProductImage": "={{ $('Parse Marketing Response').item.json.productImage }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "ProductID",
+              "displayName": "ProductID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ProductName",
+              "displayName": "ProductName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ProcessedAt",
+              "displayName": "ProcessedAt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Headline",
+              "displayName": "Headline",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ProductURL",
+              "displayName": "ProductURL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "DateTimeCreated",
+              "displayName": "DateTimeCreated",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "SocialPost",
+              "displayName": "SocialPost",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ProductImage",
+              "displayName": "ProductImage",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        2000,
+        -96
+      ],
+      "id": "e3fd697f-b562-4bca-8031-de160d096645",
+      "name": "Save to Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "QrdVcRSV8DgAcNck",
+          "name": "Google Sheets account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Parse Marketing Response').item.json.chatId }}",
+        "text": "=🚀 <b>MARKETING CONTENT GENERATED</b> 🚀\n\n📦 <b>Product:</b> {{ $('Parse Marketing Response').item.json.productName }}\n\n🎯 <b>Headline:</b>\n{{ $('Parse Marketing Response').item.json.headline }}\n\n📝 <b>Marketing Description:</b>\n{{ $('Parse Marketing Response').item.json.description }}\n\n📱 <b>Social Media Post:</b>\n{{ $('Parse Marketing Response').item.json.socialPost }}\n\n🎬 <b>Video Script:</b>\n{{ $('Parse Marketing Response').item.json.videoScript }}\n\n🔗 <b>Product URL:</b> {{ $('Parse Marketing Response').item.json.productUrl }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        },
+        "path": "43dd8d1a-e89b-47f0-aa31-e1c547b9eae2"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2208,
+        -96
+      ],
+      "id": "3161151d-c366-4dc7-b8bc-4888b54f5695",
+      "name": "Send Content to Telegram",
+      "webhookId": "43dd8d1a-e89b-47f0-aa31-e1c547b9eae2",
+      "credentials": {
+        "telegramApi": {
+          "id": "VVVfsF0zp9hQn8N8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendPhoto",
+        "chatId": "={{ $('Parse Marketing Response').item.json.chatId }}",
+        "file": "={{ $('Parse Marketing Response').item.json.productImage }}",
+        "additionalFields": {
+          "caption": "={{ $('Parse Marketing Response').item.json.headline }}"
+        },
+        "path": "ab2e48fe-62cb-454f-80c0-27aa6561048e"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2400,
+        -96
+      ],
+      "id": "f94b4a1e-2da5-404d-a9c6-447b8adffa12",
+      "name": "Send Photo to Telegram",
+      "webhookId": "ab2e48fe-62cb-454f-80c0-27aa6561048e",
+      "credentials": {
+        "telegramApi": {
+          "id": "VVVfsF0zp9hQn8N8",
+          "name": "Telegram account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Parse Marketing Response').item.json.chatId }}",
+        "text": "=📲 Would you like to post this to <b>Facebook</b> and <b>Instagram</b>?",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        },
+        "path": "16719ae3-9c9e-4822-aa5f-838f47c572da"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2608,
+        -96
+      ],
+      "id": "724f307e-da5e-4fdc-988e-c9af16f355fa",
+      "name": "Ask Post Social",
+      "webhookId": "16719ae3-9c9e-4822-aa5f-838f47c572da",
+      "credentials": {
+        "telegramApi": {
+          "id": "VVVfsF0zp9hQn8N8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1k6dLR39LQqj7igNv5LhF34jm26zfXBx3XpwC_Ld0yVw",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "ProcessedProducts",
+          "mode": "name"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "ProductID",
+              "lookupValue": "={{ $json.productId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        400,
+        352
+      ],
+      "id": "b00da5b2-c2ca-45d5-bce6-798624a180d5",
+      "name": "Retrieve Social Data",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "QrdVcRSV8DgAcNck",
+          "name": "Google Sheets account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $json;\nconst chatId = $('Parse Command').first()?.json?.chatId || 0;\nconst callbackQueryId = $('Parse Command').first()?.json?.callbackQueryId || '';\n\nreturn {\n  productId: data.ProductID,\n  productName: data.ProductName,\n  socialPost: data.SocialPost || '',\n  productImage: data.ProductImage || '',\n  productUrl: data.ProductURL || '',\n  headline: data.Headline || '',\n  chatId,\n  callbackQueryId\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        608,
+        352
+      ],
+      "id": "dea67ad2-e934-4172-8e4a-f20f1f22d9b6",
+      "name": "Prepare Social Post"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v21.0/906637619202517/photos",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "url",
+              "value": "={{ $json.productImage }}"
+            },
+            {
+              "name": "message",
+              "value": "={{ $json.socialPost }}"
+            },
+            {
+              "name": "access_token",
+              "value": "EAAb8JhDZBZA58BQlZBXfyN8lFGcsuKV13HPgZCLBAgptVNiOMyEUSEw1bMC3OZB1M1aw9OMypB4Aez7vHSs13zt1KWGVsCFnzyC3QKjAPo9YlYgeNQcSEtpyZCXoJN0k0Iy2u9ZBuRdQK1jJA4tgtwvyrZAUw2C2ZBZA74ZAZA9qWqays0tmC9Ei5FXoD6wl3ZAEOm6LMQ5RDgpvWApbeHn1qPTcgpcVdweWS5cE5tOKsgaKTWA7yMqtPQlFdPOHIFN3c"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        800,
+        352
+      ],
+      "id": "c1acce88-1dc4-401f-87dc-97d119b33232",
+      "name": "Post to Facebook",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v21.0/17841479955618921/media",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "image_url",
+              "value": "={{ $('Prepare Social Post').item.json.productImage }}"
+            },
+            {
+              "name": "caption",
+              "value": "={{ $('Prepare Social Post').item.json.socialPost }}"
+            },
+            {
+              "name": "access_token",
+              "value": "EAAb8JhDZBZA58BQlZBXfyN8lFGcsuKV13HPgZCLBAgptVNiOMyEUSEw1bMC3OZB1M1aw9OMypB4Aez7vHSs13zt1KWGVsCFnzyC3QKjAPo9YlYgeNQcSEtpyZCXoJN0k0Iy2u9ZBuRdQK1jJA4tgtwvyrZAUw2C2ZBZA74ZAZA9qWqays0tmC9Ei5FXoD6wl3ZAEOm6LMQ5RDgpvWApbeHn1qPTcgpcVdweWS5cE5tOKsgaKTWA7yMqtPQlFdPOHIFN3c"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1008,
+        352
+      ],
+      "id": "b40bde5e-bff4-4991-ae6d-2a643fd78257",
+      "name": "Create IG Container",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v21.0/17841479955618921/media_publish",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "creation_id",
+              "value": "={{ $json.id }}"
+            },
+            {
+              "name": "access_token",
+              "value": "EAAb8JhDZBZA58BQlZBXfyN8lFGcsuKV13HPgZCLBAgptVNiOMyEUSEw1bMC3OZB1M1aw9OMypB4Aez7vHSs13zt1KWGVsCFnzyC3QKjAPo9YlYgeNQcSEtpyZCXoJN0k0Iy2u9ZBuRdQK1jJA4tgtwvyrZAUw2C2ZBZA74ZAZA9qWqays0tmC9Ei5FXoD6wl3ZAEOm6LMQ5RDgpvWApbeHn1qPTcgpcVdweWS5cE5tOKsgaKTWA7yMqtPQlFdPOHIFN3c"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1200,
+        352
+      ],
+      "id": "3e936637-dd48-45ad-88db-2f65c1daff49",
+      "name": "Publish IG Media",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Prepare Social Post').item.json.chatId }}",
+        "text": "=✅ <b>Posted to social media!</b>\n\n📦 <b>Product:</b> {{ $('Prepare Social Post').item.json.productName }}\n📝 <b>Headline:</b> {{ $('Prepare Social Post').item.json.headline }}\n\n🔵 Facebook: Posted\n🟣 Instagram: Posted\n\n🔗 {{ $('Prepare Social Post').item.json.productUrl }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        },
+        "path": "37220bb8-4625-4553-9cf2-ee176dc13764"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1408,
+        352
+      ],
+      "id": "a5dcc811-96e5-4333-838b-21d6a642a03f",
+      "name": "Notify Social Posted",
+      "webhookId": "37220bb8-4625-4553-9cf2-ee176dc13764",
+      "credentials": {
+        "telegramApi": {
+          "id": "VVVfsF0zp9hQn8N8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chatId }}",
+        "text": "👌 Skipped social media posting.",
+        "additionalFields": {
+          "appendAttribution": false
+        },
+        "path": "ac7bba36-8d75-4fda-a139-daaece6484cf"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        400,
+        480
+      ],
+      "id": "52e364f3-a325-4179-9b12-5b0a59cca537",
+      "name": "Notify Skipped",
+      "webhookId": "ac7bba36-8d75-4fda-a139-daaece6484cf",
+      "credentials": {
+        "telegramApi": {
+          "id": "VVVfsF0zp9hQn8N8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Prepare Product Data').item.json.chatId }}",
+        "text": "⚠️ Product ID {{ $('Prepare Product Data').item.json.productId }} ({{ $('Prepare Product Data').item.json.productName }}) has already been processed. Skipping to avoid duplicate content.",
+        "additionalFields": {
+          "appendAttribution": false
+        },
+        "path": "ce0b4f1e-f8d7-487c-bd08-2cc09f564a62"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1408,
+        112
+      ],
+      "id": "6cdc8652-cbc5-4657-83c7-f0b2419e806e",
+      "name": "Notify Already Processed",
+      "webhookId": "ce0b4f1e-f8d7-487c-bd08-2cc09f564a62",
+      "credentials": {
+        "telegramApi": {
+          "id": "VVVfsF0zp9hQn8N8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chatId }}",
+        "text": "📋 <b>Marketing Bot Commands:</b>\n\n<code>market</code> - Generate marketing for 5 recent products\n<code>market [ID]</code> - Generate marketing for specific product ID\n<code>help</code> - Show this help message\n\n💡 After generating, you can post directly to Facebook & Instagram.\nProducts are tracked to avoid duplicate generation.",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        },
+        "path": "002c0744-d6b6-4fd2-9292-e49093d6e679"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        400,
+        208
+      ],
+      "id": "eecec85a-6c6e-41a6-a832-d8fd8de2910c",
+      "name": "Send Help",
+      "webhookId": "002c0744-d6b6-4fd2-9292-e49093d6e679",
+      "credentials": {
+        "telegramApi": {
+          "id": "VVVfsF0zp9hQn8N8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.message?.chat?.id || $json.callback_query?.message?.chat?.id }}",
+        "text": "❌ Invalid user. Access denied.",
+        "additionalFields": {},
+        "path": "909eb727-03d2-4ab6-a564-e168055d7b29"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -208,
+        160
+      ],
+      "id": "9a18701d-fee1-4ab8-a135-788c0219dca1",
+      "name": "Invalid User",
+      "webhookId": "909eb727-03d2-4ab6-a564-e168055d7b29",
+      "credentials": {
+        "telegramApi": {
+          "id": "VVVfsF0zp9hQn8N8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## WooCommerce Marketing Generator\n\n### Triggers:\n- **Telegram**: Send 'market' or 'market [productID]'\n- **Schedule**: Runs daily automatically\n- **Callback**: Inline keyboard for social posting\n\n### Features:\n- Generates marketing content via Gemini AI\n- Creates AI marketing images via Imagen\n- Tracks processed products in Google Sheets\n- Sends results + photo to Telegram\n- **Post to Facebook & Instagram** via inline keyboard\n\n### Required Environment Variables:\n- `FB_PAGE_ID` - Facebook Page ID\n- `FB_PAGE_ACCESS_TOKEN` - Facebook Page Access Token\n- `IG_BUSINESS_ACCOUNT_ID` - Instagram Business Account ID",
+        "height": 420,
+        "width": 380
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -480,
+        -448
+      ],
+      "id": "f7f89f31-e727-40a4-b237-71d3c431fa3a",
+      "name": "Sticky Note"
+    }
+  ],
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Validate User",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Daily Schedule": {
+      "main": [
+        [
+          {
+            "node": "Set Schedule Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate User": {
+      "main": [
+        [
+          {
+            "node": "Parse Command",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Invalid User",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Command": {
+      "main": [
+        [
+          {
+            "node": "Command Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Schedule Context": {
+      "main": [
+        [
+          {
+            "node": "Command Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Command Router": {
+      "main": [
+        [
+          {
+            "node": "Has Product ID?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Help",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Retrieve Social Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notify Skipped",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Product ID?": {
+      "main": [
+        [
+          {
+            "node": "Get Specific Product",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Recent Products",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Specific Product": {
+      "main": [
+        [
+          {
+            "node": "Prepare Product Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Recent Products": {
+      "main": [
+        [
+          {
+            "node": "Prepare Product Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Product Data": {
+      "main": [
+        [
+          {
+            "node": "Check If Processed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check If Processed": {
+      "main": [
+        [
+          {
+            "node": "Not Processed Yet?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Not Processed Yet?": {
+      "main": [
+        [
+          {
+            "node": "Generate Marketing Content",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notify Already Processed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Marketing Content": {
+      "main": [
+        [
+          {
+            "node": "Parse Marketing Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Marketing Response": {
+      "main": [
+        [
+          {
+            "node": "Generate Marketing Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Marketing Image": {
+      "main": [
+        [
+          {
+            "node": "Save to Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save to Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Send Content to Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Content to Telegram": {
+      "main": [
+        [
+          {
+            "node": "Send Photo to Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Photo to Telegram": {
+      "main": [
+        [
+          {
+            "node": "Ask Post Social",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retrieve Social Data": {
+      "main": [
+        [
+          {
+            "node": "Prepare Social Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Social Post": {
+      "main": [
+        [
+          {
+            "node": "Post to Facebook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Post to Facebook": {
+      "main": [
+        [
+          {
+            "node": "Create IG Container",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create IG Container": {
+      "main": [
+        [
+          {
+            "node": "Publish IG Media",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Publish IG Media": {
+      "main": [
+        [
+          {
+            "node": "Notify Social Posted",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "timeSavedMode": "dynamic",
+    "timezone": "Asia/Singapore"
+  },
+  "staticData": {
+    "node:Daily Schedule": {
+      "recurrenceRules": [
+        8
+      ]
+    }
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "0b1b4fbb-ea8a-45c1-b6b0-e2814de9dfdc",
+  "activeVersionId": null,
+  "versionCounter": 126,
+  "triggerCount": 2,
+  "shared": [
+    {
+      "updatedAt": "2026-02-04T15:45:04.641Z",
+      "createdAt": "2026-02-04T15:45:04.641Z",
+      "role": "workflow:owner",
+      "workflowId": "RNXmb87hGtinA79y",
+      "projectId": "OZpEMZrnioWDCJsC",
+      "project": {
+        "updatedAt": "2026-01-19T07:38:19.868Z",
+        "createdAt": "2026-01-19T07:37:57.912Z",
+        "id": "OZpEMZrnioWDCJsC",
+        "name": "Lemuel Francisco <freelance.lemuelrfrancisco@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "38f71c9d-2cc5-453b-8284-e3d5eb508e7c",
+        "projectRelations": [
+          {
+            "updatedAt": "2026-01-19T07:37:57.912Z",
+            "createdAt": "2026-01-19T07:37:57.912Z",
+            "userId": "38f71c9d-2cc5-453b-8284-e3d5eb508e7c",
+            "projectId": "OZpEMZrnioWDCJsC",
+            "user": {
+              "updatedAt": "2026-02-04T08:46:31.302Z",
+              "createdAt": "2026-01-19T07:37:57.337Z",
+              "id": "38f71c9d-2cc5-453b-8284-e3d5eb508e7c",
+              "email": "freelance.lemuelrfrancisco@gmail.com",
+              "firstName": "Lemuel",
+              "lastName": "Francisco",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2026-01-19T07:38:36.482Z",
+                "personalization_survey_n8n_version": "2.2.4",
+                "companyType": "personal",
+                "reportedSource": "youtube"
+              },
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "VtHe_WtifdGUhlOw9NMlt",
+                "userActivatedAt": 1768896964872,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1769644632310
+                },
+                "dismissedCallouts": {
+                  "aiAgentStarterCallout": true
+                }
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-02-04",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": null
+}

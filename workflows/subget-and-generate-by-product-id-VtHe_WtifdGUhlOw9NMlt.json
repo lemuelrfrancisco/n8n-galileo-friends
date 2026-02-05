@@ -389,7 +389,7 @@
             "userId": "38f71c9d-2cc5-453b-8284-e3d5eb508e7c",
             "projectId": "OZpEMZrnioWDCJsC",
             "user": {
-              "updatedAt": "2026-02-04T01:02:15.000Z",
+              "updatedAt": "2026-02-04T08:46:31.302Z",
               "createdAt": "2026-01-19T07:37:57.337Z",
               "id": "38f71c9d-2cc5-453b-8284-e3d5eb508e7c",
               "email": "freelance.lemuelrfrancisco@gmail.com",
@@ -410,11 +410,14 @@
                 "npsSurvey": {
                   "responded": true,
                   "lastShownAt": 1769644632310
+                },
+                "dismissedCallouts": {
+                  "aiAgentStarterCallout": true
                 }
               },
               "disabled": false,
               "mfaEnabled": false,
-              "lastActiveAt": "2026-02-03",
+              "lastActiveAt": "2026-02-04",
               "isPending": false
             }
           }
